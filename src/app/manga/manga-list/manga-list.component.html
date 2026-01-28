@@ -48,11 +48,11 @@
     </div>
 
     } @else {
-    <ngb-pagination class="d-flex justify-content-end mt-6" [collectionSize]="mangaList.length" [(page)]="page"
+    <ngb-pagination class="d-flex justify-content-end mt-6" [collectionSize]="mangaList().length" [(page)]="page"
       [maxSize]="5" [rotate]="true" [ellipses]="false" [boundaryLinks]="true" [pageSize]="20" />
     <div class="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
 
-      @for (item of mangaList | slice: (page-1) * 20 : page * 20; track item.no) {
+      @for (item of mangaList() | slice: (page-1) * 20 : page * 20; track item.no) {
       <div class="group relative p-1 "
         [ngClass]="[(item.status === 'Finished' ? 'border-solid border-green-500 border-4 rounded-md' : 'border-solid border-inherit border-2 rounded-md')]">
         <div
@@ -78,7 +78,7 @@
       </div>
       }
 
-      @if ( mangaList.length === 0){
+      @if ( mangaList().length === 0){
       @for (item of [].constructor( 20 ) ; let idx = $index; track idx) {
       <div class="animate-pulse flex space-x-4">
         <div class="h-96 w-64 bg-slate-300 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
@@ -87,7 +87,7 @@
       }
       }
     </div>
-    <ngb-pagination class="d-flex justify-content-end mt-6" [collectionSize]="mangaList.length" [(page)]="page"
+    <ngb-pagination class="d-flex justify-content-end mt-6" [collectionSize]="mangaList().length" [(page)]="page"
       [maxSize]="5" [rotate]="true" [ellipses]="false" [boundaryLinks]="true" [pageSize]="20" />
     }
 

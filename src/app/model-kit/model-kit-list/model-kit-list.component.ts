@@ -1,11 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { IModelKit } from '../interface/manga.interface';
 import { ModelKitService } from '../service/model-kit.service';
-import { Store } from '@ngrx/store';
-import { loadModelKit } from '../ngrx/action/model-kit.action';
-import { Subject, takeUntil } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { NgbPaginationModule, NgbDropdownModule, NgbTypeaheadModule } from '@ng-bootstrap/ng-bootstrap';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-model-kit-list',
@@ -18,19 +16,23 @@ import { NgbPaginationModule, NgbDropdownModule, NgbTypeaheadModule } from '@ng-
   styleUrl: './model-kit-list.component.scss'
 })
 export class ModelKitListComponent {
-  modelKitList$ = this.store.select(state => state.modelKit);
-  modelKitList: Array<IModelKit> = [];
+  private destroyRef = inject(DestroyRef);
+  modelKitList = signal<IModelKit[]>([]);
   page = 1;
-  private ngUnsubscribe = new Subject();
 
-  constructor(private store: Store<{ modelKit: IModelKit[] }>) {
+  constructor(private modelKitService: ModelKitService) {
   }
 
   ngOnInit() {
-    this.store.dispatch(loadModelKit());
-    this.modelKitList$.pipe(takeUntil(this.ngUnsubscribe)).subscribe((data) => {
-      this.modelKitList = data
-      // console.log('this.modelKitList')
-    })
+    this.modelKitService.getModelKitList()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data) => {
+          this.modelKitList.set(data ?? []);
+        },
+        error: (error) => {
+          console.error(error);
+        }
+      });
   }
 }

@@ -1,10 +1,9 @@
-import { CommonModule, JsonPipe } from '@angular/common';
-import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   NgbDropdownModule,
   NgbPaginationModule,
-  NgbTypeahead,
   NgbTypeaheadModule,
 } from '@ng-bootstrap/ng-bootstrap';
 import {
@@ -12,13 +11,10 @@ import {
   Observable,
   debounceTime,
   map,
-  takeUntil,
-  Subject,
 } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MangaService } from '../service/manga.service';
 import { IManga } from '../interface/manga.interface';
-import { Store } from '@ngrx/store';
-import { loadManga } from '../ngrx/action/manga.action';
 @Component({
   selector: 'app-manga-list',
   imports: [
@@ -32,29 +28,17 @@ import { loadManga } from '../ngrx/action/manga.action';
   styleUrl: './manga-list.component.scss'
 })
 export class MangaListComponent {
-  mangaList$ = this.store.select(state => state.manga);
-  mangaList: Array<IManga> = [];
+  private destroyRef = inject(DestroyRef);
+  mangaList = signal<IManga[]>([]);
   page = 1;
-  private ngUnsubscribe = new Subject();
+  model!: IManga;
 
-
-  constructor(private mangaService: MangaService, private store: Store<{ manga: IManga[] }>) {
+  constructor(private mangaService: MangaService) {
   }
 
   ngOnInit(): void {
-    // console.log('manga list', this.mangaList);
-
-    this.store.dispatch(loadManga());
-    this.mangaList$.pipe(takeUntil(this.ngUnsubscribe)).subscribe((data) => {
-      if (!data || data.length === 0) {
-        this.store.dispatch(loadManga());
-      } else {
-        this.mangaList = data
-      }
-    });
+    this.getData();
   }
-
-  model!: IManga;
 
   search: OperatorFunction<string, readonly any[]> = (
     text$: Observable<string>
@@ -64,7 +48,7 @@ export class MangaListComponent {
       map((term) =>
         term === ''
           ? []
-          : this.mangaList
+          : this.mangaList()
             .filter(
               (v) => v.name.toLowerCase().indexOf(term.toLowerCase()) > -1
             )
@@ -76,9 +60,10 @@ export class MangaListComponent {
 
   getData() {
     this.mangaService.getMangaList()
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data) => {
-          this.mangaList = data;
+          this.mangaList.set(data ?? []);
         },
         error: (error) => {
           console.error(error);
@@ -87,37 +72,38 @@ export class MangaListComponent {
   }
 
   sortBy(sortType: string) {
+    const list = [...this.mangaList()];
     switch (sortType) {
       case 'New':
-        this.mangaList = this.mangaList.sort(
+        this.mangaList.set(list.sort(
           (a, b) =>
             new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-        );
+        ));
         break;
       case 'Old':
-        this.mangaList = this.mangaList.sort(
+        this.mangaList.set(list.sort(
           (a, b) =>
             new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
-        );
+        ));
         break;
       case 'LastUpdated':
-        this.mangaList = this.mangaList
+        this.mangaList.set(list
           .map((data) => {
             // data.filterDate = this.mapDate(data.lastUpDate);
-            return { ...data, filterDate: this.mapDate(data.lastUpDate) };;
+            return { ...data, filterDate: this.mapDate(data.lastUpDate) };
           })
-          .sort((a, b) => b.filterDate!.getTime() - a.filterDate!.getTime());
+          .sort((a, b) => b.filterDate!.getTime() - a.filterDate!.getTime()));
         break;
       case 'startDated':
-        this.mangaList = this.mangaList
+        this.mangaList.set(list
           .map((data) => {
             // data.filterDate = this.mapDate(data.startDate);
-            return { ...data, filterDate: this.mapDate(data.lastUpDate) };;
+            return { ...data, filterDate: this.mapDate(data.lastUpDate) };
           })
-          .sort((a, b) => a.filterDate!.getTime() - b.filterDate!.getTime());
+          .sort((a, b) => a.filterDate!.getTime() - b.filterDate!.getTime()));
         break;
       default:
-        this.mangaList = this.mangaList.sort((a, b) => +a.no - +b.no);
+        this.mangaList.set(list.sort((a, b) => +a.no - +b.no));
         break;
     }
   }
