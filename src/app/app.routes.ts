@@ -3,6 +3,9 @@ import { RegisterComponent } from './register/register.component';
 import { MangaListComponent } from './manga/manga-list/manga-list.component';
 import { ModelKitListComponent } from './model-kit/model-kit-list/model-kit-list.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
+import { ReviewComponent } from './review/review.component';
+import { ReviewBookComponent } from './review/review-book/review-book.component';
+import { ReviewGameComponent } from './review/review-game/review-game.component';
 
 export const routes: Routes = [
   {
@@ -16,6 +19,15 @@ export const routes: Routes = [
   {
     path: 'manga',
     component: MangaListComponent,
+  },
+  {
+    path: 'review',
+    component: ReviewComponent,
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'review-book' },
+      { path: 'review-book', component: ReviewBookComponent },
+      { path: 'review-game', component: ReviewGameComponent }
+    ]
   },
   {
     path: 'dashboard',

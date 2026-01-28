@@ -52,6 +52,8 @@
                 [ngClass]="[(selectedOption() === 'Manga' ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white')]">Books</a>
               <a routerLink="/model-kit" (click)="selectTab('Models')" class="rounded-md px-3 py-2 text-sm font-medium"
                 [ngClass]="[(selectedOption() === 'Models' ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white')]">Models</a>
+              <a routerLink="/review" (click)="selectTab('Review')" class="rounded-md px-3 py-2 text-sm font-medium"
+                [ngClass]="[(selectedOption() === 'Review' ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white')]">Review</a>
             </div>
           </div>
         </div>
@@ -82,6 +84,8 @@
           aria-current="page">Dashboard</a>
         <a routerLink="/manga"
           class="text-gray-300 hover:bg-gray-700 hover:text-white block rounded-md px-3 py-2 text-base font-medium">Manga</a>
+        <a routerLink="/review"
+          class="text-gray-300 hover:bg-gray-700 hover:text-white block rounded-md px-3 py-2 text-base font-medium">Review</a>
         <a href="#"
           class="text-gray-300 hover:bg-gray-700 hover:text-white block rounded-md px-3 py-2 text-base font-medium">Anime</a>
         <a href="#"
