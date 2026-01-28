@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 
 @Component({
     selector: 'app-manga-detail',
-    imports: [CommonModule],
+    imports: [],
     templateUrl: './manga-detail.component.html',
     styleUrl: './manga-detail.component.scss'
 })

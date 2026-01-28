@@ -1,6 +1,6 @@
 
-import { CommonModule, DOCUMENT } from '@angular/common';
-import { Component, Inject, linkedSignal, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, Inject, linkedSignal, signal, DOCUMENT } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 @Component({
   selector: 'app-root',

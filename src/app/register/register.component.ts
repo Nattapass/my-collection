@@ -1,5 +1,5 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { CommonModule, JsonPipe } from '@angular/common';
+import { JsonPipe } from '@angular/common';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Component } from '@angular/core';
 import Swal from 'sweetalert2'
@@ -11,7 +11,7 @@ import { addManga, loadManga, updateManga } from '../manga/ngrx/action/manga.act
 
 @Component({
   selector: 'app-register',
-  imports: [CommonModule, ReactiveFormsModule, NgbTypeaheadModule, FormsModule,],
+  imports: [ReactiveFormsModule, NgbTypeaheadModule, FormsModule],
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss'
 })
