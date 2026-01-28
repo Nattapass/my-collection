@@ -1,18 +1,18 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   NgbDropdownModule,
   NgbPaginationModule,
   NgbTypeaheadModule,
 } from '@ng-bootstrap/ng-bootstrap';
+import { RouterLink } from '@angular/router';
 import {
   OperatorFunction,
   Observable,
   debounceTime,
   map,
 } from 'rxjs';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MangaService } from '../service/manga.service';
 import { IManga } from '../interface/manga.interface';
 @Component({
@@ -22,14 +22,15 @@ import { IManga } from '../interface/manga.interface';
     NgbPaginationModule,
     NgbDropdownModule,
     NgbTypeaheadModule,
-    FormsModule
+    FormsModule,
+    RouterLink
   ],
   templateUrl: './manga-list.component.html',
   styleUrl: './manga-list.component.scss'
 })
 export class MangaListComponent {
-  private destroyRef = inject(DestroyRef);
-  mangaList = signal<IManga[]>([]);
+  mangaList = this.mangaService.mangaList;
+  isLoading = this.mangaService.isLoading;
   page = 1;
   model!: IManga;
 
@@ -37,7 +38,7 @@ export class MangaListComponent {
   }
 
   ngOnInit(): void {
-    this.getData();
+    this.mangaService.loadOnce();
   }
 
   search: OperatorFunction<string, readonly any[]> = (
@@ -58,17 +59,8 @@ export class MangaListComponent {
 
   formatter = (x: { name: string }) => x.name;
 
-  getData() {
-    this.mangaService.getMangaList()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (data) => {
-          this.mangaList.set(data ?? []);
-        },
-        error: (error) => {
-          console.error(error);
-        },
-      });
+  refresh() {
+    this.mangaService.refresh();
   }
 
   sortBy(sortType: string) {
