@@ -2,48 +2,47 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgbPaginationModule } from '@ng-bootstrap/ng-bootstrap';
-import { ReviewBook, ReviewBookService } from './review-book.service';
+import { ReviewAnime, ReviewAnimeService } from './review-anime.service';
 
 @Component({
-  selector: 'app-review-book',
+  selector: 'app-review-anime',
   standalone: true,
   imports: [CommonModule, FormsModule, NgbPaginationModule],
-  templateUrl: './review-book.component.html',
-  styleUrl: './review-book.component.scss'
+  templateUrl: './review-anime.component.html',
+  styleUrl: './review-anime.component.scss'
 })
-export class ReviewBookComponent {
+export class ReviewAnimeComponent {
   private isDragging = false;
   private dragStartX = 0;
   private dragStartScrollLeft = 0;
   private readonly numberKeys = [
-    'total',
+    'episode',
     'story',
+    'art',
+    'song',
     'character',
-    'illustration',
     'storytelling',
-    'score',
+    'Score',
   ] as const;
-  reviewBooks = this.reviewBookService.reviewBooks;
-  isLoading = this.reviewBookService.isLoading;
+  reviewAnime = this.reviewAnimeService.reviewAnime;
+  isLoading = this.reviewAnimeService.isLoading;
   searchTerm = signal('');
   filterType = signal('');
-  filterLicense = signal('');
   pendingType = signal('');
-  pendingLicense = signal('');
   isFilterOpen = signal(false);
-  sortKey = signal<keyof ReviewBook | null>(null);
+  sortKey = signal<keyof ReviewAnime | null>(null);
   sortDir = signal<'asc' | 'desc'>('asc');
   page = 1;
   pageSize = 15;
 
-  constructor(private reviewBookService: ReviewBookService) {}
+  constructor(private reviewAnimeService: ReviewAnimeService) {}
 
   ngOnInit(): void {
-    this.reviewBookService.loadOnce();
+    this.reviewAnimeService.loadOnce();
   }
 
   refresh() {
-    this.reviewBookService.refresh();
+    this.reviewAnimeService.refresh();
   }
 
   onSearch(term: string) {
@@ -53,7 +52,6 @@ export class ReviewBookComponent {
 
   openFilter() {
     this.pendingType.set(this.filterType());
-    this.pendingLicense.set(this.filterLicense());
     this.isFilterOpen.set(true);
   }
 
@@ -63,20 +61,17 @@ export class ReviewBookComponent {
 
   applyFilter() {
     this.filterType.set(this.pendingType());
-    this.filterLicense.set(this.pendingLicense());
     this.page = 1;
     this.closeFilter();
   }
 
   clearFilter() {
     this.filterType.set('');
-    this.filterLicense.set('');
     this.pendingType.set('');
-    this.pendingLicense.set('');
     this.page = 1;
   }
 
-  setSort(key: keyof ReviewBook) {
+  setSort(key: keyof ReviewAnime) {
     if (this.sortKey() === key) {
       this.sortDir.set(this.sortDir() === 'asc' ? 'desc' : 'asc');
     } else {
@@ -89,23 +84,20 @@ export class ReviewBookComponent {
     this.page = 1;
   }
 
-  filteredBooks = computed(() => {
+  filteredAnime = computed(() => {
     const term = this.searchTerm().trim().toLowerCase();
     const type = this.filterType().trim().toLowerCase();
-    const license = this.filterLicense().trim().toLowerCase();
-    return this.reviewBooks().filter((item) => {
+    return this.reviewAnime().filter((item) => {
       const matchesName = !term || item.name.toLowerCase().includes(term);
       const matchesType = !type || item.type.toLowerCase() === type;
-      const matchesLicense =
-        !license || item.license.toLowerCase() === license;
-      return matchesName && matchesType && matchesLicense;
+      return matchesName && matchesType;
     });
   });
 
-  sortedBooks = computed(() => {
+  sortedAnime = computed(() => {
     const key = this.sortKey();
     const dir = this.sortDir();
-    const list = [...this.filteredBooks()];
+    const list = [...this.filteredAnime()];
     if (!key) {
       return list;
     }
@@ -128,12 +120,7 @@ export class ReviewBookComponent {
   });
 
   types = computed(() => {
-    const values = new Set(this.reviewBooks().map((item) => item.type).filter(Boolean));
-    return Array.from(values).sort();
-  });
-
-  licenses = computed(() => {
-    const values = new Set(this.reviewBooks().map((item) => item.license).filter(Boolean));
+    const values = new Set(this.reviewAnime().map((item) => item.type).filter(Boolean));
     return Array.from(values).sort();
   });
 

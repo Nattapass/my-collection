@@ -1,0 +1,168 @@
+<div class="rounded-md border border-gray-200 bg-white p-4">
+  <div class="d-flex justify-between align-items-center">
+    <div>
+      <h3 class="text-lg font-semibold text-gray-900">Add Review</h3>
+      <p class="mt-2 text-sm text-gray-600">Select a review category and fill in the details.</p>
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <label class="text-sm font-medium text-gray-700">Review Category</label>
+    <select
+      class="form-select mt-1"
+      [value]="reviewCategory()"
+      (change)="onCategoryChange($any($event.target).value)"
+    >
+      <option value="review-book">Review Book</option>
+      <option value="review-anime">Review Anime</option>
+    </select>
+  </div>
+
+  @if (reviewCategory() === 'review-book') {
+    <form class="mt-6" [formGroup]="reviewBookForm" (ngSubmit)="submitReviewBook()">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label class="text-sm font-medium text-gray-700">ชื่อ</label>
+          <input class="form-control mt-1" type="text" formControlName="name" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-700">ประเภท</label>
+          <input class="form-control mt-1" type="text" formControlName="type" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-700">License</label>
+          <input class="form-control mt-1" type="text" formControlName="license" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-700">จำนวนเล่ม</label>
+          <input class="form-control mt-1" type="number" min="0" formControlName="total" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-700">เนื้อเรื่อง</label>
+          <input class="form-control mt-1" type="number" min="0" formControlName="story" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-700">ตัวละคร</label>
+          <input class="form-control mt-1" type="number" min="0" formControlName="character" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-700">ภาพ</label>
+          <input class="form-control mt-1" type="number" min="0" formControlName="illustration" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-700">การเล่าเรื่อง</label>
+          <input class="form-control mt-1" type="number" min="0" formControlName="storytelling" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-700">สรุปคะแนน</label>
+          <input class="form-control mt-1" type="number" min="0" formControlName="score" readonly />
+          <p class="mt-1 text-xs text-gray-500">Score is calculated automatically.</p>
+        </div>
+        <div class="sm:col-span-2">
+          <label class="text-sm font-medium text-gray-700">รูป</label>
+          <input class="form-control mt-1" type="text" formControlName="image" />
+        </div>
+        <div class="sm:col-span-2">
+          <label class="text-sm font-medium text-gray-700">ความเห็น</label>
+          <textarea class="form-control mt-1" rows="3" formControlName="comment"></textarea>
+        </div>
+      </div>
+
+      <div class="mt-4 d-flex justify-between align-items-center gap-3">
+        <div>
+          @if (errorMessage()) {
+            <p class="text-sm text-red-600">{{ errorMessage() }}</p>
+          }
+          @if (successMessage()) {
+            <p class="text-sm text-green-600">{{ successMessage() }}</p>
+          }
+        </div>
+        <button
+          type="submit"
+          class="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
+          [disabled]="isSaving() || reviewBookForm.invalid"
+        >
+          @if (isSaving()) { Saving... } @else { Create Review }
+        </button>
+      </div>
+    </form>
+  }
+
+  @if (reviewCategory() === 'review-anime') {
+    <form class="mt-6" [formGroup]="reviewAnimeForm" (ngSubmit)="submitReviewAnime()">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label class="text-sm font-medium text-gray-700">ชื่อ</label>
+          <input class="form-control mt-1" type="text" formControlName="name" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-700">วันฉาย</label>
+          <input class="form-control mt-1" type="text" formControlName="premiered(JP)" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-700">วันที่ดูจบ</label>
+          <input class="form-control mt-1" type="text" formControlName="finished date" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-700">ประเภท</label>
+          <input class="form-control mt-1" type="text" formControlName="type" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-700">จำนวนตอน</label>
+          <input class="form-control mt-1" type="number" min="0" formControlName="episode" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-700">เนื้อเรื่อง</label>
+          <input class="form-control mt-1" type="number" min="0" formControlName="story" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-700">ภาพ</label>
+          <input class="form-control mt-1" type="number" min="0" formControlName="art" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-700">เพลง</label>
+          <input class="form-control mt-1" type="number" min="0" formControlName="song" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-700">ตัวละคร</label>
+          <input class="form-control mt-1" type="number" min="0" formControlName="character" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-700">การเล่าเรื่อง</label>
+          <input class="form-control mt-1" type="number" min="0" formControlName="storytelling" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-700">รวมคะแนน</label>
+          <input class="form-control mt-1" type="number" min="0" formControlName="Score" readonly />
+          <p class="mt-1 text-xs text-gray-500">Score is calculated automatically.</p>
+        </div>
+        <div class="sm:col-span-2">
+          <label class="text-sm font-medium text-gray-700">รูป</label>
+          <input class="form-control mt-1" type="text" formControlName="image" />
+        </div>
+        <div class="sm:col-span-2">
+          <label class="text-sm font-medium text-gray-700">ความคิดเห็น</label>
+          <textarea class="form-control mt-1" rows="3" formControlName="comment"></textarea>
+        </div>
+      </div>
+
+      <div class="mt-4 d-flex justify-between align-items-center gap-3">
+        <div>
+          @if (errorMessage()) {
+            <p class="text-sm text-red-600">{{ errorMessage() }}</p>
+          }
+          @if (successMessage()) {
+            <p class="text-sm text-green-600">{{ successMessage() }}</p>
+          }
+        </div>
+        <button
+          type="submit"
+          class="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
+          [disabled]="isSaving() || reviewAnimeForm.invalid"
+        >
+          @if (isSaving()) { Saving... } @else { Create Review }
+        </button>
+      </div>
+    </form>
+  }
+</div>

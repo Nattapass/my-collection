@@ -1,27 +1,29 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-export interface ReviewBook {
+export interface ReviewAnime {
   name: string;
-  type: string;
-  license: string;
-  total: number;
-  story: number;
-  character: number;
-  illustration: number;
-  storytelling: number;
-  score: number;
-  comment: string;
+  'premiered(JP)': string;
   image: string;
+  'finished date': string;
+  type: string;
+  episode: number;
+  story: number;
+  art: number;
+  song: number;
+  character: number;
+  storytelling: number;
+  Score: number;
+  comment: string;
 }
 
 @Injectable({
   providedIn: 'root',
 })
-export class ReviewBookService {
+export class ReviewAnimeService {
   private readonly loaded = signal(false);
   readonly isLoading = signal(false);
-  readonly reviewBooks = signal<ReviewBook[]>([]);
+  readonly reviewAnime = signal<ReviewAnime[]>([]);
 
   constructor(private http: HttpClient) {}
 
@@ -37,15 +39,15 @@ export class ReviewBookService {
     this.fetch(true);
   }
 
-  createReviewBook(payload: ReviewBook) {
-    return this.http.post<ReviewBook>(
-      'https://service-collection.vercel.app/review-books',
+  createReviewAnime(payload: ReviewAnime) {
+    return this.http.post<ReviewAnime>(
+      'https://service-collection.vercel.app/review-anime',
       payload
     );
   }
 
-  prependReviewBook(item: ReviewBook) {
-    this.reviewBooks.update((list) => [item, ...list]);
+  prependReviewAnime(item: ReviewAnime) {
+    this.reviewAnime.update((list) => [item, ...list]);
   }
 
   private fetch(force = false) {
@@ -55,10 +57,10 @@ export class ReviewBookService {
     }
     this.isLoading.set(true);
     this.http
-      .get<ReviewBook[]>('https://service-collection.vercel.app/review-books')
+      .get<ReviewAnime[]>('https://service-collection.vercel.app/review-anime')
       .subscribe({
         next: (data) => {
-          this.reviewBooks.set(data ?? []);
+          this.reviewAnime.set(data ?? []);
           this.loaded.set(true);
           this.isLoading.set(false);
         },
