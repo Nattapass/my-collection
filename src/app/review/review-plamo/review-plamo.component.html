@@ -1,0 +1,160 @@
+<div class="rounded-md border border-gray-200 bg-white p-4">
+  <div class="d-flex justify-between align-items-center">
+    <div>
+      <h3 class="text-lg font-semibold text-gray-900">Plamo Reviews</h3>
+      <p class="mt-2 text-sm text-gray-600">This section can show plamo review data.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <button
+        type="button"
+        class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800"
+        [disabled]="isLoading()"
+        (click)="refresh()"
+      >
+        Refresh
+      </button>
+    </div>
+  </div>
+
+  <div class="mt-4 d-flex justify-between align-items-center gap-2">
+    <div class="flex-grow-1">
+      <input
+        type="text"
+        class="form-control"
+        placeholder="Search by name..."
+        [ngModel]="searchTerm()"
+        (ngModelChange)="onSearch($event)"
+      />
+    </div>
+    <button
+      type="button"
+      class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800"
+      (click)="onSearch(searchTerm())"
+    >
+      Search
+    </button>
+  </div>
+
+  <div
+    class="mt-4 overflow-x-auto cursor-grab select-none"
+    (pointerdown)="onDragStart($event)"
+    (pointermove)="onDragMove($event)"
+    (pointerup)="onDragEnd($event)"
+    (pointercancel)="onDragEnd($event)"
+    (pointerleave)="onDragEnd($event)"
+  >
+    <table class="min-w-full border border-gray-200 text-left text-sm text-gray-700">
+      <thead class="bg-gray-50 text-xs font-semibold uppercase text-gray-600">
+        <tr>
+          <th class="px-3 py-2"></th>
+          <th class="px-3 py-2 min-w-[220px]">
+            <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('name')">
+              ชื่อ
+              <span class="text-[10px] text-gray-400">^</span>
+              @if (sortKey() === 'name') { <span>{{ sortDir() === 'asc' ? '^' : 'v' }}</span> }
+            </button>
+          </th>
+          <th class="px-3 py-2">
+            <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('line')">
+              ไลน์
+              <span class="text-[10px] text-gray-400">^</span>
+              @if (sortKey() === 'line') { <span>{{ sortDir() === 'asc' ? '^' : 'v' }}</span> }
+            </button>
+          </th>
+          <th class="px-3 py-2">
+            <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('finishedDate')">
+              วันที่ต่อเสร็จ
+              <span class="text-[10px] text-gray-400">^</span>
+              @if (sortKey() === 'finishedDate') { <span>{{ sortDir() === 'asc' ? '^' : 'v' }}</span> }
+            </button>
+          </th>
+          <th class="px-3 py-2">
+            <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('assembly')">
+              การประกอบ
+              <span class="text-[10px] text-gray-400">^</span>
+              @if (sortKey() === 'assembly') { <span>{{ sortDir() === 'asc' ? '^' : 'v' }}</span> }
+            </button>
+          </th>
+          <th class="px-3 py-2">
+            <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('design')">
+              ความสวย
+              <span class="text-[10px] text-gray-400">^</span>
+              @if (sortKey() === 'design') { <span>{{ sortDir() === 'asc' ? '^' : 'v' }}</span> }
+            </button>
+          </th>          <th class="px-3 py-2">
+            <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('joint')">
+              ความแข็งแรง
+              <span class="text-[10px] text-gray-400">^</span>
+              @if (sortKey() === 'joint') { <span>{{ sortDir() === 'asc' ? '^' : 'v' }}</span> }
+            </button>
+          </th>
+          <th class="px-3 py-2">
+            <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('worth')">
+              ความคุ้มค่า
+              <span class="text-[10px] text-gray-400">^</span>
+              @if (sortKey() === 'worth') { <span>{{ sortDir() === 'asc' ? '^' : 'v' }}</span> }
+            </button>
+          </th>
+          <th class="px-3 py-2">
+            <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('score')">
+              สรุปคะแนน
+              <span class="text-[10px] text-gray-400">^</span>
+              @if (sortKey() === 'score') { <span>{{ sortDir() === 'asc' ? '^' : 'v' }}</span> }
+            </button>
+          </th>
+          <th class="px-3 py-2 min-w-[350px]">ความคิดเห็น</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (isLoading()) {
+          @for (item of [].constructor(15); let idx = $index; track idx) {
+            <tr class="border-t border-gray-200">
+              <td class="px-3 py-2"><div class="h-16 w-16 animate-pulse rounded bg-gray-200"></div></td>
+              <td class="px-3 py-2"><div class="h-4 w-32 animate-pulse rounded bg-gray-200"></div></td>
+              <td class="px-3 py-2"><div class="h-4 w-20 animate-pulse rounded bg-gray-200"></div></td>
+              <td class="px-3 py-2"><div class="h-4 w-24 animate-pulse rounded bg-gray-200"></div></td>
+              <td class="px-3 py-2"><div class="h-4 w-10 animate-pulse rounded bg-gray-200"></div></td>
+              <td class="px-3 py-2"><div class="h-4 w-10 animate-pulse rounded bg-gray-200"></div></td>
+              <td class="px-3 py-2"><div class="h-4 w-10 animate-pulse rounded bg-gray-200"></div></td>
+              <td class="px-3 py-2"><div class="h-4 w-10 animate-pulse rounded bg-gray-200"></div></td>
+              <td class="px-3 py-2"><div class="h-4 w-48 animate-pulse rounded bg-gray-200"></div></td>
+            </tr>
+          }
+        } @else {
+          @for (item of sortedPlamos() | slice: (page - 1) * pageSize : page * pageSize; track item.name) {
+        <tr class="border-t border-gray-200 align-top">
+          <td class="px-3 py-2">
+            <div class="h-32 w-24 overflow-hidden rounded bg-white d-flex align-items-center justify-center">
+              <img
+                [src]="item.image"
+                alt="Review Plamo"
+                class="plamo-image"
+              />
+            </div>
+          </td>
+          <td class="px-3 py-2 min-w-[220px] font-medium text-gray-900">{{ item.name }}</td>
+          <td class="px-3 py-2">{{ item.line }}</td>
+          <td class="px-3 py-2">{{ item.finishedDate }}</td>
+          <td class="px-3 py-2">{{ item.assembly }}</td>
+          <td class="px-3 py-2">{{ item.design }}</td>          <td class="px-3 py-2">{{ item.joint }}</td>
+          <td class="px-3 py-2">{{ item.worth }}</td>
+          <td class="px-3 py-2">{{ item.score }}</td>
+          <td class="px-3 py-2 whitespace-pre-line min-w-[350px]">{{ item.comment }}</td>
+        </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <ngb-pagination
+    class="mt-4 d-flex justify-content-end"
+    [collectionSize]="sortedPlamos().length"
+    [(page)]="page"
+    [maxSize]="5"
+    [rotate]="true"
+    [ellipses]="false"
+    [boundaryLinks]="true"
+    [pageSize]="pageSize"
+  />
+</div>

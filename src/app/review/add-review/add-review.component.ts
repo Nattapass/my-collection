@@ -5,8 +5,9 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import Swal from 'sweetalert2';
 import { ReviewBook, ReviewBookService } from '../review-book/review-book.service';
 import { ReviewAnime, ReviewAnimeService } from '../review-anime/review-anime.service';
+import { ReviewPlamo, ReviewPlamoService } from '../review-plamo/review-plamo.service';
 
-type ReviewCategory = 'review-book' | 'review-anime';
+type ReviewCategory = 'review-book' | 'review-anime' | 'review-plamo' | '';
 
 @Component({
   selector: 'app-add-review',
@@ -17,12 +18,13 @@ type ReviewCategory = 'review-book' | 'review-anime';
 })
 export class AddReviewComponent {
   private readonly destroyRef = inject(DestroyRef);
-  readonly reviewCategory = signal<ReviewCategory>('review-book');
+  readonly reviewCategory = signal<ReviewCategory>('');
   readonly isSaving = signal(false);
   readonly errorMessage = signal('');
   readonly successMessage = signal('');
   private readonly scoreFields = ['story', 'character', 'illustration', 'storytelling'] as const;
   private readonly animeScoreFields = ['story', 'art', 'song', 'character', 'storytelling'] as const;
+  private readonly plamoScoreFields = ['assembly', 'design', 'joint', 'worth'] as const;
   private readonly initialReviewBookFormValue = {
     name: '',
     type: '',
@@ -49,6 +51,18 @@ export class AddReviewComponent {
     character: 0,
     storytelling: 0,
     Score: 0,
+    comment: '',
+  };
+  private readonly initialReviewPlamoFormValue = {
+    image: '',
+    name: '',
+    line: '',
+    finishedDate: '',
+    assembly: 0,
+    design: 0,
+    joint: 0,
+    worth: 0,
+    score: 0,
     comment: '',
   };
 
@@ -82,12 +96,27 @@ export class AddReviewComponent {
     comment: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
   });
 
+  readonly reviewPlamoForm = new FormGroup({
+    image: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    line: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    finishedDate: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    assembly: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
+    design: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
+    joint: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
+    worth: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
+    score: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
+    comment: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+  });
+
   constructor(
     private reviewBookService: ReviewBookService,
-    private reviewAnimeService: ReviewAnimeService
+    private reviewAnimeService: ReviewAnimeService,
+    private reviewPlamoService: ReviewPlamoService
   ) {
     this.setupScoreSync();
     this.setupAnimeScoreSync();
+    this.setupPlamoScoreSync();
   }
 
   onCategoryChange(value: string) {
@@ -99,7 +128,11 @@ export class AddReviewComponent {
       this.reviewCategory.set('review-anime');
       return;
     }
-    this.reviewCategory.set('review-book');
+    if (value === 'review-plamo') {
+      this.reviewCategory.set('review-plamo');
+      return;
+    }
+    this.reviewCategory.set('');
   }
 
   submitReviewBook() {
@@ -184,6 +217,47 @@ export class AddReviewComponent {
       });
   }
 
+  submitReviewPlamo() {
+    this.errorMessage.set('');
+    this.successMessage.set('');
+
+    if (this.reviewPlamoForm.invalid) {
+      this.reviewPlamoForm.markAllAsTouched();
+      this.errorMessage.set('Please fill in all required fields.');
+      return;
+    }
+
+    const payload = this.mapReviewPlamoPayload();
+    this.isSaving.set(true);
+    this.reviewPlamoService
+      .createReviewPlamo(payload)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (created) => {
+          const resolved = created ?? payload;
+          this.reviewPlamoService.prependReviewPlamo(resolved);
+          this.isSaving.set(false);
+          this.successMessage.set('Review created successfully.');
+          this.reviewPlamoForm.reset(this.initialReviewPlamoFormValue);
+          Swal.fire({
+            title: 'Create Success!',
+            text: '',
+            icon: 'success',
+          });
+        },
+        error: (error) => {
+          console.error(error);
+          this.isSaving.set(false);
+          this.errorMessage.set('Failed to create review. Please try again.');
+          Swal.fire({
+            icon: 'error',
+            title: 'Create Failed',
+            text: 'Please try again.',
+          });
+        }
+      });
+  }
+
   private mapReviewBookPayload(): ReviewBook {
     const raw = this.reviewBookForm.getRawValue();
     return {
@@ -220,6 +294,22 @@ export class AddReviewComponent {
     };
   }
 
+  private mapReviewPlamoPayload(): ReviewPlamo {
+    const raw = this.reviewPlamoForm.getRawValue();
+    return {
+      image: raw.image.trim(),
+      name: raw.name.trim(),
+      line: raw.line.trim(),
+      finishedDate: raw.finishedDate.trim(),
+      assembly: this.toNumber(raw.assembly),
+      design: this.toNumber(raw.design),
+      joint: this.toNumber(raw.joint),
+      worth: this.toNumber(raw.worth),
+      score: this.toNumber(raw.score),
+      comment: raw.comment.trim(),
+    };
+  }
+
   private setupScoreSync() {
     this.reviewBookForm.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -245,6 +335,20 @@ export class AddReviewComponent {
         const average = total / this.animeScoreFields.length;
         const rounded = Number.isFinite(average) ? Number(average.toFixed(2)) : 0;
         this.reviewAnimeForm.controls.Score.setValue(rounded, { emitEvent: false });
+      });
+  }
+
+  private setupPlamoScoreSync() {
+    this.reviewPlamoForm.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        const total = this.plamoScoreFields.reduce((sum, key) => {
+          const controlValue = this.reviewPlamoForm.controls[key].value;
+          return sum + this.toNumber(controlValue);
+        }, 0);
+        const average = total / this.plamoScoreFields.length;
+        const rounded = Number.isFinite(average) ? Number(average.toFixed(2)) : 0;
+        this.reviewPlamoForm.controls.score.setValue(rounded, { emitEvent: false });
       });
   }
 

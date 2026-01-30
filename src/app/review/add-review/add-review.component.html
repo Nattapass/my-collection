@@ -13,8 +13,8 @@
       [value]="reviewCategory()"
       (change)="onCategoryChange($any($event.target).value)"
     >
-      <option value="review-book">Review Book</option>
-      <option value="review-anime">Review Anime</option>
+      <option value="">Select review type</option>`r`n      <option value="review-book">Review Book</option>
+      <option value="review-anime">Review Anime</option>`r`n      <option value="review-plamo">Review Plamo</option>
     </select>
   </div>
 
@@ -159,6 +159,72 @@
           type="submit"
           class="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
           [disabled]="isSaving() || reviewAnimeForm.invalid"
+        >
+          @if (isSaving()) { Saving... } @else { Create Review }
+        </button>
+      </div>
+    </form>
+  }
+
+  @if (reviewCategory() === 'review-plamo') {
+    <form class="mt-6" [formGroup]="reviewPlamoForm" (ngSubmit)="submitReviewPlamo()">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="sm:col-span-2">
+          <label class="text-sm font-medium text-gray-700">รูป</label>
+          <input class="form-control mt-1" type="text" formControlName="image" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-700">ชื่อ</label>
+          <input class="form-control mt-1" type="text" formControlName="name" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-700">ไลน์</label>
+          <input class="form-control mt-1" type="text" formControlName="line" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-700">วันที่ต่อเสร็จ</label>
+          <input class="form-control mt-1" type="text" formControlName="finishedDate" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-700">การประกอบ</label>
+          <input class="form-control mt-1" type="number" min="0" formControlName="assembly" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-700">ความสวย</label>
+          <input class="form-control mt-1" type="number" min="0" formControlName="design" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-700">ความแข็งแรง</label>
+          <input class="form-control mt-1" type="number" min="0" formControlName="joint" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-700">ความคุ้มค่า</label>
+          <input class="form-control mt-1" type="number" min="0" formControlName="worth" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-700">สรุปคะแนน</label>
+          <input class="form-control mt-1" type="number" min="0" formControlName="score" readonly />
+          <p class="mt-1 text-xs text-gray-500">Score is calculated automatically.</p>
+        </div>
+        <div class="sm:col-span-2">
+          <label class="text-sm font-medium text-gray-700">ความคิดเห็น</label>
+          <textarea class="form-control mt-1" rows="3" formControlName="comment"></textarea>
+        </div>
+      </div>
+
+      <div class="mt-4 d-flex justify-between align-items-center gap-3">
+        <div>
+          @if (errorMessage()) {
+            <p class="text-sm text-red-600">{{ errorMessage() }}</p>
+          }
+          @if (successMessage()) {
+            <p class="text-sm text-green-600">{{ successMessage() }}</p>
+          }
+        </div>
+        <button
+          type="submit"
+          class="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
+          [disabled]="isSaving() || reviewPlamoForm.invalid"
         >
           @if (isSaving()) { Saving... } @else { Create Review }
         </button>

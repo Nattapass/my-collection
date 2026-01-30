@@ -8,6 +8,7 @@ import { ReviewBookComponent } from './review/review-book/review-book.component'
 import { ReviewGameComponent } from './review/review-game/review-game.component';
 import { AddReviewComponent } from './review/add-review/add-review.component';
 import { ReviewAnimeComponent } from './review/review-anime/review-anime.component';
+import { ReviewPlamoComponent } from './review/review-plamo/review-plamo.component';
 
 export const routes: Routes = [
   {
@@ -30,6 +31,7 @@ export const routes: Routes = [
       { path: 'review-book', component: ReviewBookComponent },
       { path: 'review-game', component: ReviewGameComponent },
       { path: 'review-anime', component: ReviewAnimeComponent },
+      { path: 'review-plamo', component: ReviewPlamoComponent },
       { path: 'add-review', component: AddReviewComponent }
     ]
   },
