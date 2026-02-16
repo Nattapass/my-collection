@@ -7,6 +7,7 @@
   ```
 -->
 <div class="min-h-full">
+  @if (authService.isAuthenticated()) {
   <nav class="bg-gray-800">
     <div class="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
       <div class="relative flex h-16 items-center justify-between">
@@ -45,7 +46,7 @@
           <div class="hidden sm:ml-6 sm:block">
             <div class="flex space-x-4">
               <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" -->
-              <a routerLink="/" class=" rounded-md px-3 py-2 text-sm font-medium" aria-current="page"
+              <a routerLink="/dashboard" class=" rounded-md px-3 py-2 text-sm font-medium" aria-current="page"
                 (click)="selectTab('Dashboard')"
                 [ngClass]="[(selectedOption() === 'Dashboard' ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white')]">Dashboard</a>
               <a routerLink="/manga" (click)="selectTab('Manga')" class="rounded-md px-3 py-2 text-sm font-medium"
@@ -57,7 +58,15 @@
             </div>
           </div>
         </div>
-        <div class="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0"></div>
+        <div class="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
+          <button
+            type="button"
+            class="rounded-md border border-gray-600 px-3 py-1 text-sm text-gray-200 hover:bg-gray-700"
+            (click)="logout()"
+          >
+            Logout
+          </button>
+        </div>
       </div>
     </div>
 
@@ -81,6 +90,7 @@
     }
 
   </nav>
+  }
   <main>
     <div class="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
       <router-outlet></router-outlet>
