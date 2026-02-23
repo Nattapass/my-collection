@@ -25,13 +25,13 @@ export class AuthService {
     }
 
     this.authenticated.set(true);
-    this.document.defaultView?.sessionStorage.setItem(this.sessionKey, 'true');
+    this.setSessionAuth(true);
     return true;
   }
 
   logout(): void {
     this.authenticated.set(false);
-    this.document.defaultView?.sessionStorage.removeItem(this.sessionKey);
+    this.setSessionAuth(false);
   }
 
   isAuthenticated(): boolean {
@@ -39,9 +39,26 @@ export class AuthService {
   }
 
   private readSessionAuth(): boolean {
-    return (
-      this.document.defaultView?.sessionStorage.getItem(this.sessionKey) ===
-      'true'
-    );
+    try {
+      return this.document.defaultView?.sessionStorage?.getItem(this.sessionKey) === 'true';
+    } catch {
+      return false;
+    }
+  }
+
+  private setSessionAuth(isAuthenticated: boolean): void {
+    try {
+      const storage = this.document.defaultView?.sessionStorage;
+      if (!storage) {
+        return;
+      }
+      if (isAuthenticated) {
+        storage.setItem(this.sessionKey, 'true');
+        return;
+      }
+      storage.removeItem(this.sessionKey);
+    } catch {
+      // ignore storage write errors (SSR/private mode/disabled storage)
+    }
   }
 }

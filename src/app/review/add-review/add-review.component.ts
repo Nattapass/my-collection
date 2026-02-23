@@ -6,8 +6,9 @@ import Swal from 'sweetalert2';
 import { ReviewBook, ReviewBookService } from '../review-book/review-book.service';
 import { ReviewAnime, ReviewAnimeService } from '../review-anime/review-anime.service';
 import { ReviewPlamo, ReviewPlamoService } from '../review-plamo/review-plamo.service';
+import { ReviewGame, ReviewGameService } from '../review-game/review-game.service';
 
-type ReviewCategory = 'review-book' | 'review-anime' | 'review-plamo' | '';
+type ReviewCategory = 'review-book' | 'review-anime' | 'review-plamo' | 'review-game' | '';
 
 @Component({
   selector: 'app-add-review',
@@ -25,6 +26,7 @@ export class AddReviewComponent {
   private readonly scoreFields = ['story', 'character', 'illustration', 'storytelling'] as const;
   private readonly animeScoreFields = ['story', 'art', 'song', 'character', 'storytelling'] as const;
   private readonly plamoScoreFields = ['assembly', 'design', 'joint', 'worth'] as const;
+  private readonly gameScoreFields = ['story', 'character', 'ost', 'gameplay', 'graphic'] as const;
   private readonly initialReviewBookFormValue = {
     name: '',
     type: '',
@@ -63,6 +65,20 @@ export class AddReviewComponent {
     joint: 0,
     worth: 0,
     score: 0,
+    comment: '',
+  };
+  private readonly initialReviewGameFormValue = {
+    image: '',
+    name: '',
+    platForm: '',
+    startDate: '',
+    endDate: '',
+    story: 0,
+    character: 0,
+    ost: 0,
+    gameplay: 0,
+    graphic: 0,
+    total: 0,
     comment: '',
   };
 
@@ -109,14 +125,31 @@ export class AddReviewComponent {
     comment: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
   });
 
+  readonly reviewGameForm = new FormGroup({
+    image: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    platForm: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    startDate: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    endDate: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    story: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
+    character: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
+    ost: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
+    gameplay: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
+    graphic: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
+    total: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
+    comment: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+  });
+
   constructor(
     private reviewBookService: ReviewBookService,
     private reviewAnimeService: ReviewAnimeService,
-    private reviewPlamoService: ReviewPlamoService
+    private reviewPlamoService: ReviewPlamoService,
+    private reviewGameService: ReviewGameService
   ) {
     this.setupScoreSync();
     this.setupAnimeScoreSync();
     this.setupPlamoScoreSync();
+    this.setupGameScoreSync();
   }
 
   onCategoryChange(value: string) {
@@ -130,6 +163,10 @@ export class AddReviewComponent {
     }
     if (value === 'review-plamo') {
       this.reviewCategory.set('review-plamo');
+      return;
+    }
+    if (value === 'review-game') {
+      this.reviewCategory.set('review-game');
       return;
     }
     this.reviewCategory.set('');
@@ -258,6 +295,47 @@ export class AddReviewComponent {
       });
   }
 
+  submitReviewGame() {
+    this.errorMessage.set('');
+    this.successMessage.set('');
+
+    if (this.reviewGameForm.invalid) {
+      this.reviewGameForm.markAllAsTouched();
+      this.errorMessage.set('Please fill in all required fields.');
+      return;
+    }
+
+    const payload = this.mapReviewGamePayload();
+    this.isSaving.set(true);
+    this.reviewGameService
+      .createReviewGame(payload)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (created) => {
+          const resolved = created ?? payload;
+          this.reviewGameService.prependReviewGame(resolved);
+          this.isSaving.set(false);
+          this.successMessage.set('Review created successfully.');
+          this.reviewGameForm.reset(this.initialReviewGameFormValue);
+          Swal.fire({
+            title: 'Create Success!',
+            text: '',
+            icon: 'success',
+          });
+        },
+        error: (error) => {
+          console.error(error);
+          this.isSaving.set(false);
+          this.errorMessage.set('Failed to create review. Please try again.');
+          Swal.fire({
+            icon: 'error',
+            title: 'Create Failed',
+            text: 'Please try again.',
+          });
+        }
+      });
+  }
+
   private mapReviewBookPayload(): ReviewBook {
     const raw = this.reviewBookForm.getRawValue();
     return {
@@ -310,6 +388,24 @@ export class AddReviewComponent {
     };
   }
 
+  private mapReviewGamePayload(): ReviewGame {
+    const raw = this.reviewGameForm.getRawValue();
+    return {
+      image: raw.image.trim(),
+      name: raw.name.trim(),
+      platForm: raw.platForm.trim(),
+      startDate: raw.startDate.trim(),
+      endDate: raw.endDate.trim(),
+      story: this.toNumber(raw.story),
+      character: this.toNumber(raw.character),
+      ost: this.toNumber(raw.ost),
+      gameplay: this.toNumber(raw.gameplay),
+      graphic: this.toNumber(raw.graphic),
+      total: this.toNumber(raw.total),
+      comment: raw.comment.trim(),
+    };
+  }
+
   private setupScoreSync() {
     this.reviewBookForm.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -349,6 +445,20 @@ export class AddReviewComponent {
         const average = total / this.plamoScoreFields.length;
         const rounded = Number.isFinite(average) ? Number(average.toFixed(2)) : 0;
         this.reviewPlamoForm.controls.score.setValue(rounded, { emitEvent: false });
+      });
+  }
+
+  private setupGameScoreSync() {
+    this.reviewGameForm.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        const total = this.gameScoreFields.reduce((sum, key) => {
+          const controlValue = this.reviewGameForm.controls[key].value;
+          return sum + this.toNumber(controlValue);
+        }, 0);
+        const average = total / this.gameScoreFields.length;
+        const rounded = Number.isFinite(average) ? Number(average.toFixed(2)) : 0;
+        this.reviewGameForm.controls.total.setValue(rounded, { emitEvent: false });
       });
   }
 
