@@ -30,7 +30,11 @@
         </div>
         <div>
           <label class="text-sm font-medium text-gray-700">ประเภท</label>
-          <input class="form-control mt-1" type="text" formControlName="type" />
+          <select class="form-select mt-1" formControlName="type">
+            <option value="">Select type</option>
+            <option value="Manga">Manga</option>
+            <option value="LightNovel">LightNovel</option>
+          </select>
         </div>
         <div>
           <label class="text-sm font-medium text-gray-700">License</label>
@@ -309,3 +313,4 @@
     </form>
   }
 </div>
+

@@ -3,7 +3,7 @@ import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angul
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import Swal from 'sweetalert2'
 import { NgbTypeaheadModule } from '@ng-bootstrap/ng-bootstrap';
-import { OperatorFunction, Observable, debounceTime, map } from 'rxjs';
+import { OperatorFunction, Observable, debounceTime, finalize, map } from 'rxjs';
 import { IManga } from '../manga/interface/manga.interface';
 import { MangaService } from '../manga/service/manga.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -16,19 +16,29 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 })
 export class RegisterComponent {
   private destroyRef = inject(DestroyRef);
+  private readonly initialFormValue = {
+    name: '',
+    licence: '',
+    startDate: '',
+    lastUpDate: '',
+    status: '',
+    totalVol: '',
+    imgUrl: '',
+    type: '',
+  };
   listForm = new FormGroup({
-    name: new FormControl(''),
-    licence: new FormControl(''),
-    startDate: new FormControl(''),
-    lastUpDate: new FormControl(''),
-    status: new FormControl(''),
-    totalVol: new FormControl(''),
-    imgUrl: new FormControl(''),
-    type: new FormControl(''),
+    name: new FormControl(this.initialFormValue.name),
+    licence: new FormControl(this.initialFormValue.licence),
+    startDate: new FormControl(this.initialFormValue.startDate),
+    lastUpDate: new FormControl(this.initialFormValue.lastUpDate),
+    status: new FormControl(this.initialFormValue.status),
+    totalVol: new FormControl(this.initialFormValue.totalVol),
+    imgUrl: new FormControl(this.initialFormValue.imgUrl),
+    type: new FormControl(this.initialFormValue.type),
   });
   mangaList = signal<IManga[]>([]);
-  selectedManga!: IManga;
-  isLoading = false;
+  selectedManga: IManga | null = null;
+  isLoading = signal(false);
 
   constructor(private http: HttpClient, private mangaService: MangaService) {
     this.getManga();
@@ -48,7 +58,11 @@ export class RegisterComponent {
   }
 
   onSubmit() {
-    this.isLoading = true
+    if (this.isLoading()) {
+      return;
+    }
+
+    this.isLoading.set(true)
     const formValue = this.listForm.getRawValue();
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
@@ -57,21 +71,26 @@ export class RegisterComponent {
       // 'Access-Control-Allow-Origin': '*'
     });
     const options = { headers };
-    if (this.selectedManga && this.selectedManga.no) {
+    const selectedManga = this.selectedManga;
+    if (selectedManga && selectedManga.no) {
       this.http
         .put(
-          `https://service-collection.vercel.app/manga/no/${this.selectedManga.no}`,
+          `https://service-collection.vercel.app/manga/no/${selectedManga.no}`,
           this.listForm.value,
           { withCredentials: true }
         )
-        .pipe(takeUntilDestroyed(this.destroyRef))
+        .pipe(
+          takeUntilDestroyed(this.destroyRef),
+          finalize(() => {
+            this.isLoading.set(false);
+          })
+        )
         .subscribe({
           next: (data) => {
-            this.isLoading = false
             console.log('HTTP request successful', data);
             this.mangaList.update((list) =>
               list.map((item) =>
-                item.no === this.selectedManga.no
+                item.no === selectedManga.no
                   ? this.mergeManga(item, formValue)
                   : item
               )
@@ -81,6 +100,9 @@ export class RegisterComponent {
               text: '',
               icon: 'success',
             });
+            this.listForm.reset(this.initialFormValue);
+            this.model = null;
+            this.selectedManga = null;
             // Handle the data or update component properties here
           },
           error: (error) => {
@@ -99,17 +121,23 @@ export class RegisterComponent {
           this.listForm.value,
           { withCredentials: true }
         )
-        .pipe(takeUntilDestroyed(this.destroyRef))
+        .pipe(
+          takeUntilDestroyed(this.destroyRef),
+          finalize(() => {
+            this.isLoading.set(false);
+          })
+        )
         .subscribe({
           next: (data: IManga) => {
-            this.isLoading = false
             this.mangaList.update((list) => [data, ...list]);
             Swal.fire({
               title: 'Update Success!',
               text: '',
               icon: 'success',
             });
-            this.listForm.reset();
+            this.listForm.reset(this.initialFormValue);
+            this.model = null;
+            this.selectedManga = null;
           },
           error: (error) => {
             Swal.fire({
@@ -124,21 +152,25 @@ export class RegisterComponent {
   }
 
   onSelectManga(event: any) {
-    const selectedIndex = event.item;
-    this.selectedManga = selectedIndex;
+    const selectedManga = event.item as IManga | null;
+    if (!selectedManga) {
+      return;
+    }
+
+    this.selectedManga = selectedManga;
     this.listForm.setValue({
-      name: this.selectedManga.name,
-      licence: this.selectedManga.licence,
-      startDate: this.selectedManga.startDate,
-      lastUpDate: this.selectedManga.lastUpDate,
-      status: this.selectedManga.status,
-      totalVol: this.selectedManga.totalVol,
-      imgUrl: this.selectedManga.imgUrl,
-      type: this.selectedManga.type,
+      name: selectedManga.name,
+      licence: selectedManga.licence,
+      startDate: selectedManga.startDate,
+      lastUpDate: selectedManga.lastUpDate,
+      status: selectedManga.status,
+      totalVol: selectedManga.totalVol,
+      imgUrl: selectedManga.imgUrl,
+      type: selectedManga.type,
     });
   }
 
-  model!: IManga;
+  model: IManga | null = null;
 
   search: OperatorFunction<string, readonly any[]> = (
     text$: Observable<string>
@@ -157,6 +189,10 @@ export class RegisterComponent {
     );
 
   formatter = (x: { name: string }) => x.name;
+
+  get isLoadingValue(): boolean {
+    return this.isLoading();
+  }
 
   private mergeManga(item: IManga, formValue: typeof this.listForm.value) {
     return {
