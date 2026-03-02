@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Observable } from 'rxjs';
 import Swal from 'sweetalert2';
 import { ReviewBook, ReviewBookService } from '../review-book/review-book.service';
 import { ReviewAnime, ReviewAnimeService } from '../review-anime/review-anime.service';
@@ -9,6 +10,7 @@ import { ReviewPlamo, ReviewPlamoService } from '../review-plamo/review-plamo.se
 import { ReviewGame, ReviewGameService } from '../review-game/review-game.service';
 
 type ReviewCategory = 'review-book' | 'review-anime' | 'review-plamo' | 'review-game' | '';
+type ReviewInitialValues = Record<string, string | number>;
 
 @Component({
   selector: 'app-add-review',
@@ -23,10 +25,20 @@ export class AddReviewComponent {
   readonly isSaving = signal(false);
   readonly errorMessage = signal('');
   readonly successMessage = signal('');
+  private readonly categoryMap: Record<string, Exclude<ReviewCategory, ''>> = {
+    'review-book': 'review-book',
+    'review-anime': 'review-anime',
+    'review-plamo': 'review-plamo',
+    'review-game': 'review-game',
+  };
   private readonly scoreFields = ['story', 'character', 'illustration', 'storytelling'] as const;
   private readonly animeScoreFields = ['story', 'art', 'song', 'character', 'storytelling'] as const;
   private readonly plamoScoreFields = ['assembly', 'design', 'joint', 'worth'] as const;
   private readonly gameScoreFields = ['story', 'character', 'ost', 'gameplay', 'graphic'] as const;
+  private readonly bookNumericFields = ['total', 'story', 'character', 'illustration', 'storytelling', 'score'] as const;
+  private readonly animeNumericFields = ['episode', 'story', 'art', 'song', 'character', 'storytelling', 'Score'] as const;
+  private readonly plamoNumericFields = ['assembly', 'design', 'joint', 'worth', 'score'] as const;
+  private readonly gameNumericFields = ['story', 'character', 'ost', 'gameplay', 'graphic', 'total'] as const;
   private readonly initialReviewBookFormValue = {
     name: '',
     type: '',
@@ -82,63 +94,10 @@ export class AddReviewComponent {
     comment: '',
   };
 
-  readonly reviewBookForm = new FormGroup({
-    name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    type: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    license: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    total: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
-    story: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
-    character: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
-    illustration: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
-    storytelling: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
-    score: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
-    comment: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    image: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-  });
-
-  readonly reviewAnimeForm = new FormGroup({
-    name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    'premiered(JP)': new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    image: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    'finished date': new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    type: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    episode: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
-    story: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
-    art: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
-    song: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
-    character: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
-    storytelling: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
-    Score: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
-    comment: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-  });
-
-  readonly reviewPlamoForm = new FormGroup({
-    image: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    line: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    finishedDate: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    assembly: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
-    design: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
-    joint: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
-    worth: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
-    score: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
-    comment: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-  });
-
-  readonly reviewGameForm = new FormGroup({
-    image: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    platForm: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    startDate: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    endDate: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    story: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
-    character: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
-    ost: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
-    gameplay: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
-    graphic: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
-    total: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
-    comment: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-  });
+  readonly reviewBookForm = this.createRequiredForm(this.initialReviewBookFormValue);
+  readonly reviewAnimeForm = this.createRequiredForm(this.initialReviewAnimeFormValue);
+  readonly reviewPlamoForm = this.createRequiredForm(this.initialReviewPlamoFormValue);
+  readonly reviewGameForm = this.createRequiredForm(this.initialReviewGameFormValue);
 
   constructor(
     private reviewBookService: ReviewBookService,
@@ -146,177 +105,83 @@ export class AddReviewComponent {
     private reviewPlamoService: ReviewPlamoService,
     private reviewGameService: ReviewGameService
   ) {
-    this.setupScoreSync();
-    this.setupAnimeScoreSync();
-    this.setupPlamoScoreSync();
-    this.setupGameScoreSync();
+    this.setupCalculatedAverage(this.reviewBookForm, this.scoreFields, 'score');
+    this.setupCalculatedAverage(this.reviewAnimeForm, this.animeScoreFields, 'Score');
+    this.setupCalculatedAverage(this.reviewPlamoForm, this.plamoScoreFields, 'score');
+    this.setupCalculatedAverage(this.reviewGameForm, this.gameScoreFields, 'total');
   }
 
   onCategoryChange(value: string) {
-    if (value === 'review-book') {
-      this.reviewCategory.set('review-book');
-      return;
-    }
-    if (value === 'review-anime') {
-      this.reviewCategory.set('review-anime');
-      return;
-    }
-    if (value === 'review-plamo') {
-      this.reviewCategory.set('review-plamo');
-      return;
-    }
-    if (value === 'review-game') {
-      this.reviewCategory.set('review-game');
-      return;
-    }
-    this.reviewCategory.set('');
+    this.reviewCategory.set(this.categoryMap[value] ?? '');
   }
 
   submitReviewBook() {
-    this.errorMessage.set('');
-    this.successMessage.set('');
-
-    if (this.reviewBookForm.invalid) {
-      this.reviewBookForm.markAllAsTouched();
-      this.errorMessage.set('Please fill in all required fields.');
-      return;
-    }
-
-    const payload = this.mapReviewBookPayload();
-    this.isSaving.set(true);
-    this.reviewBookService
-      .createReviewBook(payload)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (created) => {
-          const resolved = created ?? payload;
-          this.reviewBookService.prependReviewBook(resolved);
-          this.isSaving.set(false);
-          this.successMessage.set('Review created successfully.');
-          this.reviewBookForm.reset(this.initialReviewBookFormValue);
-          Swal.fire({
-            title: 'Create Success!',
-            text: '',
-            icon: 'success',
-          });
-        },
-        error: (error) => {
-          console.error(error);
-          this.isSaving.set(false);
-          this.errorMessage.set('Failed to create review. Please try again.');
-          Swal.fire({
-            icon: 'error',
-            title: 'Create Failed',
-            text: 'Please try again.',
-          });
-        }
-      });
+    this.submitReview({
+      form: this.reviewBookForm,
+      mapPayload: () => this.mapPayload<ReviewBook>(this.reviewBookForm, this.bookNumericFields),
+      createReview: (payload) => this.reviewBookService.createReviewBook(payload),
+      prependReview: (payload) => this.reviewBookService.prependReviewBook(payload),
+      resetValue: this.initialReviewBookFormValue,
+    });
   }
 
   submitReviewAnime() {
-    this.errorMessage.set('');
-    this.successMessage.set('');
-
-    if (this.reviewAnimeForm.invalid) {
-      this.reviewAnimeForm.markAllAsTouched();
-      this.errorMessage.set('Please fill in all required fields.');
-      return;
-    }
-
-    const payload = this.mapReviewAnimePayload();
-    this.isSaving.set(true);
-    this.reviewAnimeService
-      .createReviewAnime(payload)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (created) => {
-          const resolved = created ?? payload;
-          this.reviewAnimeService.prependReviewAnime(resolved);
-          this.isSaving.set(false);
-          this.successMessage.set('Review created successfully.');
-          this.reviewAnimeForm.reset(this.initialReviewAnimeFormValue);
-          Swal.fire({
-            title: 'Create Success!',
-            text: '',
-            icon: 'success',
-          });
-        },
-        error: (error) => {
-          console.error(error);
-          this.isSaving.set(false);
-          this.errorMessage.set('Failed to create review. Please try again.');
-          Swal.fire({
-            icon: 'error',
-            title: 'Create Failed',
-            text: 'Please try again.',
-          });
-        }
-      });
+    this.submitReview({
+      form: this.reviewAnimeForm,
+      mapPayload: () => this.mapPayload<ReviewAnime>(this.reviewAnimeForm, this.animeNumericFields),
+      createReview: (payload) => this.reviewAnimeService.createReviewAnime(payload),
+      prependReview: (payload) => this.reviewAnimeService.prependReviewAnime(payload),
+      resetValue: this.initialReviewAnimeFormValue,
+    });
   }
 
   submitReviewPlamo() {
-    this.errorMessage.set('');
-    this.successMessage.set('');
-
-    if (this.reviewPlamoForm.invalid) {
-      this.reviewPlamoForm.markAllAsTouched();
-      this.errorMessage.set('Please fill in all required fields.');
-      return;
-    }
-
-    const payload = this.mapReviewPlamoPayload();
-    this.isSaving.set(true);
-    this.reviewPlamoService
-      .createReviewPlamo(payload)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (created) => {
-          const resolved = created ?? payload;
-          this.reviewPlamoService.prependReviewPlamo(resolved);
-          this.isSaving.set(false);
-          this.successMessage.set('Review created successfully.');
-          this.reviewPlamoForm.reset(this.initialReviewPlamoFormValue);
-          Swal.fire({
-            title: 'Create Success!',
-            text: '',
-            icon: 'success',
-          });
-        },
-        error: (error) => {
-          console.error(error);
-          this.isSaving.set(false);
-          this.errorMessage.set('Failed to create review. Please try again.');
-          Swal.fire({
-            icon: 'error',
-            title: 'Create Failed',
-            text: 'Please try again.',
-          });
-        }
-      });
+    this.submitReview({
+      form: this.reviewPlamoForm,
+      mapPayload: () => this.mapPayload<ReviewPlamo>(this.reviewPlamoForm, this.plamoNumericFields),
+      createReview: (payload) => this.reviewPlamoService.createReviewPlamo(payload),
+      prependReview: (payload) => this.reviewPlamoService.prependReviewPlamo(payload),
+      resetValue: this.initialReviewPlamoFormValue,
+    });
   }
 
   submitReviewGame() {
+    this.submitReview({
+      form: this.reviewGameForm,
+      mapPayload: () => this.mapPayload<ReviewGame>(this.reviewGameForm, this.gameNumericFields),
+      createReview: (payload) => this.reviewGameService.createReviewGame(payload),
+      prependReview: (payload) => this.reviewGameService.prependReviewGame(payload),
+      resetValue: this.initialReviewGameFormValue,
+    });
+  }
+
+  private submitReview<T>(options: {
+    form: FormGroup;
+    mapPayload: () => T;
+    createReview: (payload: T) => Observable<T | null | undefined>;
+    prependReview: (payload: T) => void;
+    resetValue: unknown;
+  }) {
     this.errorMessage.set('');
     this.successMessage.set('');
 
-    if (this.reviewGameForm.invalid) {
-      this.reviewGameForm.markAllAsTouched();
+    if (options.form.invalid) {
+      options.form.markAllAsTouched();
       this.errorMessage.set('Please fill in all required fields.');
       return;
     }
 
-    const payload = this.mapReviewGamePayload();
+    const payload = options.mapPayload();
     this.isSaving.set(true);
-    this.reviewGameService
-      .createReviewGame(payload)
+    options.createReview(payload)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (created) => {
           const resolved = created ?? payload;
-          this.reviewGameService.prependReviewGame(resolved);
+          options.prependReview(resolved);
           this.isSaving.set(false);
           this.successMessage.set('Review created successfully.');
-          this.reviewGameForm.reset(this.initialReviewGameFormValue);
+          options.form.reset(options.resetValue);
           Swal.fire({
             title: 'Create Success!',
             text: '',
@@ -336,133 +201,49 @@ export class AddReviewComponent {
       });
   }
 
-  private mapReviewBookPayload(): ReviewBook {
-    const raw = this.reviewBookForm.getRawValue();
-    return {
-      name: raw.name.trim(),
-      type: raw.type.trim(),
-      license: raw.license.trim(),
-      total: this.toNumber(raw.total),
-      story: this.toNumber(raw.story),
-      character: this.toNumber(raw.character),
-      illustration: this.toNumber(raw.illustration),
-      storytelling: this.toNumber(raw.storytelling),
-      score: this.toNumber(raw.score),
-      comment: raw.comment.trim(),
-      image: raw.image.trim(),
-    };
-  }
-
-  private mapReviewAnimePayload(): ReviewAnime {
-    const raw = this.reviewAnimeForm.getRawValue();
-    return {
-      name: raw.name.trim(),
-      'premiered(JP)': raw['premiered(JP)'].trim(),
-      image: raw.image.trim(),
-      'finished date': raw['finished date'].trim(),
-      type: raw.type.trim(),
-      episode: this.toNumber(raw.episode),
-      story: this.toNumber(raw.story),
-      art: this.toNumber(raw.art),
-      song: this.toNumber(raw.song),
-      character: this.toNumber(raw.character),
-      storytelling: this.toNumber(raw.storytelling),
-      Score: this.toNumber(raw.Score),
-      comment: raw.comment.trim(),
-    };
-  }
-
-  private mapReviewPlamoPayload(): ReviewPlamo {
-    const raw = this.reviewPlamoForm.getRawValue();
-    return {
-      image: raw.image.trim(),
-      name: raw.name.trim(),
-      line: raw.line.trim(),
-      finishedDate: raw.finishedDate.trim(),
-      assembly: this.toNumber(raw.assembly),
-      design: this.toNumber(raw.design),
-      joint: this.toNumber(raw.joint),
-      worth: this.toNumber(raw.worth),
-      score: this.toNumber(raw.score),
-      comment: raw.comment.trim(),
-    };
-  }
-
-  private mapReviewGamePayload(): ReviewGame {
-    const raw = this.reviewGameForm.getRawValue();
-    return {
-      image: raw.image.trim(),
-      name: raw.name.trim(),
-      platForm: raw.platForm.trim(),
-      startDate: raw.startDate.trim(),
-      endDate: raw.endDate.trim(),
-      story: this.toNumber(raw.story),
-      character: this.toNumber(raw.character),
-      ost: this.toNumber(raw.ost),
-      gameplay: this.toNumber(raw.gameplay),
-      graphic: this.toNumber(raw.graphic),
-      total: this.toNumber(raw.total),
-      comment: raw.comment.trim(),
-    };
-  }
-
-  private setupScoreSync() {
-    this.reviewBookForm.valueChanges
+  private setupCalculatedAverage(form: FormGroup, scoreFields: readonly string[], resultField: string) {
+    form.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
-        const total = this.scoreFields.reduce((sum, key) => {
-          const controlValue = this.reviewBookForm.controls[key].value;
+        const total = scoreFields.reduce((sum, key) => {
+          const controlValue = form.get(key)?.value;
           return sum + this.toNumber(controlValue);
         }, 0);
-        const average = total / this.scoreFields.length;
+        const average = total / scoreFields.length;
         const rounded = Number.isFinite(average) ? Number(average.toFixed(2)) : 0;
-        this.reviewBookForm.controls.score.setValue(rounded, { emitEvent: false });
+        form.get(resultField)?.setValue(rounded, { emitEvent: false });
       });
   }
 
-  private setupAnimeScoreSync() {
-    this.reviewAnimeForm.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
-        const total = this.animeScoreFields.reduce((sum, key) => {
-          const controlValue = this.reviewAnimeForm.controls[key].value;
-          return sum + this.toNumber(controlValue);
-        }, 0);
-        const average = total / this.animeScoreFields.length;
-        const rounded = Number.isFinite(average) ? Number(average.toFixed(2)) : 0;
-        this.reviewAnimeForm.controls.Score.setValue(rounded, { emitEvent: false });
+  private createRequiredForm<T extends ReviewInitialValues>(initialValues: T) {
+    const controls = Object.entries(initialValues).reduce((acc, [key, value]) => {
+      acc[key as keyof T] = new FormControl(value as T[keyof T], {
+        nonNullable: true,
+        validators: [Validators.required],
       });
+      return acc;
+    }, {} as { [K in keyof T]: FormControl<T[K]> });
+
+    return new FormGroup(controls);
   }
 
-  private setupPlamoScoreSync() {
-    this.reviewPlamoForm.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
-        const total = this.plamoScoreFields.reduce((sum, key) => {
-          const controlValue = this.reviewPlamoForm.controls[key].value;
-          return sum + this.toNumber(controlValue);
-        }, 0);
-        const average = total / this.plamoScoreFields.length;
-        const rounded = Number.isFinite(average) ? Number(average.toFixed(2)) : 0;
-        this.reviewPlamoForm.controls.score.setValue(rounded, { emitEvent: false });
-      });
+  private mapPayload<T>(form: FormGroup, numericFields: readonly string[]): T {
+    const numericFieldSet = new Set(numericFields);
+    const raw = form.getRawValue() as Record<string, unknown>;
+
+    return Object.entries(raw).reduce((acc, [key, value]) => {
+      if (numericFieldSet.has(key)) {
+        acc[key] = this.toNumber(value as number | string | null | undefined);
+      } else if (typeof value === 'string') {
+        acc[key] = value.trim();
+      } else {
+        acc[key] = value;
+      }
+      return acc;
+    }, {} as Record<string, unknown>) as T;
   }
 
-  private setupGameScoreSync() {
-    this.reviewGameForm.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
-        const total = this.gameScoreFields.reduce((sum, key) => {
-          const controlValue = this.reviewGameForm.controls[key].value;
-          return sum + this.toNumber(controlValue);
-        }, 0);
-        const average = total / this.gameScoreFields.length;
-        const rounded = Number.isFinite(average) ? Number(average.toFixed(2)) : 0;
-        this.reviewGameForm.controls.total.setValue(rounded, { emitEvent: false });
-      });
-  }
-
-  private toNumber(value: number | string) {
+  private toNumber(value: number | string | null | undefined) {
     const parsed = Number(value);
     return Number.isFinite(parsed) ? parsed : 0;
   }
