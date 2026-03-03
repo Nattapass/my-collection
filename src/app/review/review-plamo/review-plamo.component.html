@@ -50,55 +50,47 @@
           <th class="px-3 py-2 min-w-[220px]">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('name')">
               ชื่อ
-              <span class="text-[10px] text-gray-400">^</span>
               @if (sortKey() === 'name') { <span>{{ sortDir() === 'asc' ? '^' : 'v' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('line')">
               ไลน์
-              <span class="text-[10px] text-gray-400">^</span>
               @if (sortKey() === 'line') { <span>{{ sortDir() === 'asc' ? '^' : 'v' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('finishedDate')">
               วันที่ต่อเสร็จ
-              <span class="text-[10px] text-gray-400">^</span>
               @if (sortKey() === 'finishedDate') { <span>{{ sortDir() === 'asc' ? '^' : 'v' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('assembly')">
               การประกอบ
-              <span class="text-[10px] text-gray-400">^</span>
               @if (sortKey() === 'assembly') { <span>{{ sortDir() === 'asc' ? '^' : 'v' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('design')">
               ความสวย
-              <span class="text-[10px] text-gray-400">^</span>
               @if (sortKey() === 'design') { <span>{{ sortDir() === 'asc' ? '^' : 'v' }}</span> }
             </button>
           </th>          <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('joint')">
               ความแข็งแรง
-              <span class="text-[10px] text-gray-400">^</span>
               @if (sortKey() === 'joint') { <span>{{ sortDir() === 'asc' ? '^' : 'v' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('worth')">
               ความคุ้มค่า
-              <span class="text-[10px] text-gray-400">^</span>
               @if (sortKey() === 'worth') { <span>{{ sortDir() === 'asc' ? '^' : 'v' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('score')">
               สรุปคะแนน
-              <span class="text-[10px] text-gray-400">^</span>
               @if (sortKey() === 'score') { <span>{{ sortDir() === 'asc' ? '^' : 'v' }}</span> }
             </button>
           </th>
@@ -158,3 +150,4 @@
     [pageSize]="pageSize"
   />
 </div>
+

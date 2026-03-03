@@ -50,70 +50,60 @@
           <th class="px-3 py-2 min-w-[220px]">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('name')">
               ชื่อ
-              <span class="text-[10px] text-gray-400">^</span>
               @if (sortKey() === 'name') { <span>{{ sortDir() === 'asc' ? '^' : 'v' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('platForm')">
               แพลตฟอร์ม
-              <span class="text-[10px] text-gray-400">^</span>
               @if (sortKey() === 'platForm') { <span>{{ sortDir() === 'asc' ? '^' : 'v' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('startDate')">
               วันที่เริ่ม
-              <span class="text-[10px] text-gray-400">^</span>
               @if (sortKey() === 'startDate') { <span>{{ sortDir() === 'asc' ? '^' : 'v' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('endDate')">
               วันที่เล่นจบ
-              <span class="text-[10px] text-gray-400">^</span>
               @if (sortKey() === 'endDate') { <span>{{ sortDir() === 'asc' ? '^' : 'v' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('story')">
               เนื้อเรื่อง
-              <span class="text-[10px] text-gray-400">^</span>
               @if (sortKey() === 'story') { <span>{{ sortDir() === 'asc' ? '^' : 'v' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('character')">
               ตัวละคร
-              <span class="text-[10px] text-gray-400">^</span>
               @if (sortKey() === 'character') { <span>{{ sortDir() === 'asc' ? '^' : 'v' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('ost')">
               เพลงประกอบ
-              <span class="text-[10px] text-gray-400">^</span>
               @if (sortKey() === 'ost') { <span>{{ sortDir() === 'asc' ? '^' : 'v' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('gameplay')">
               เกมเพลย์
-              <span class="text-[10px] text-gray-400">^</span>
               @if (sortKey() === 'gameplay') { <span>{{ sortDir() === 'asc' ? '^' : 'v' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('graphic')">
               กราฟฟิค
-              <span class="text-[10px] text-gray-400">^</span>
               @if (sortKey() === 'graphic') { <span>{{ sortDir() === 'asc' ? '^' : 'v' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('total')">
               รวม
-              <span class="text-[10px] text-gray-400">^</span>
               @if (sortKey() === 'total') { <span>{{ sortDir() === 'asc' ? '^' : 'v' }}</span> }
             </button>
           </th>
@@ -179,3 +169,4 @@
     [pageSize]="pageSize"
   />
 </div>
+

@@ -112,6 +112,13 @@ export class ReviewBookComponent {
     return list.sort((a, b) => {
       const aVal = a[key];
       const bVal = b[key];
+      if (key === 'finishedDate') {
+        const aDate = this.parseDdMmYyyy(aVal);
+        const bDate = this.parseDdMmYyyy(bVal);
+        if (aDate !== null && bDate !== null) {
+          return dir === 'desc' ? bDate - aDate : aDate - bDate;
+        }
+      }
       if (typeof aVal === 'number' && typeof bVal === 'number') {
         return dir === 'desc' ? bVal - aVal : aVal - bVal;
       }
@@ -127,6 +134,28 @@ export class ReviewBookComponent {
     });
   });
 
+  private parseDdMmYyyy(value: unknown): number | null {
+    if (typeof value !== 'string') {
+      return null;
+    }
+    const match = value.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (!match) {
+      return null;
+    }
+    const day = Number(match[1]);
+    const month = Number(match[2]);
+    const year = Number(match[3]);
+    const date = new Date(year, month - 1, day);
+    if (
+      date.getFullYear() !== year ||
+      date.getMonth() !== month - 1 ||
+      date.getDate() !== day
+    ) {
+      return null;
+    }
+    return date.getTime();
+  }
+
   types = computed(() => {
     const values = new Set(this.reviewBooks().map((item) => item.type).filter(Boolean));
     return Array.from(values).sort();
@@ -139,6 +168,10 @@ export class ReviewBookComponent {
 
   onDragStart(event: PointerEvent) {
     if (event.button !== 0) {
+      return;
+    }
+    const eventTarget = event.target as Element | null;
+    if (eventTarget && this.isInteractiveTarget(eventTarget)) {
       return;
     }
     const target = event.currentTarget as HTMLElement | null;
@@ -179,5 +212,13 @@ export class ReviewBookComponent {
       }
     }
     this.isDragging = false;
+  }
+
+  private isInteractiveTarget(target: Element) {
+    return Boolean(
+      target.closest(
+        'button, a, input, select, textarea, label, [role="button"], [contenteditable="true"]'
+      )
+    );
   }
 }

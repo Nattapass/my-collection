@@ -43,6 +43,7 @@ export class AddReviewComponent {
     name: '',
     type: '',
     license: '',
+    finishedDate: '',
     total: 0,
     story: 0,
     character: 0,

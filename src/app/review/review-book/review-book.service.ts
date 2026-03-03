@@ -5,6 +5,7 @@ export interface ReviewBook {
   name: string;
   type: string;
   license: string;
+  finishedDate: string;
   total: number;
   story: number;
   character: number;

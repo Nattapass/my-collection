@@ -57,63 +57,60 @@
           <th class="px-3 py-2 min-w-[220px]">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('name')">
               ชื่อ
-              <span class="text-[10px] text-gray-400">↕</span>
               @if (sortKey() === 'name') { <span>{{ sortDir() === 'asc' ? '▲' : '▼' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('type')">
               ประเภท
-              <span class="text-[10px] text-gray-400">↕</span>
               @if (sortKey() === 'type') { <span>{{ sortDir() === 'asc' ? '▲' : '▼' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('license')">
               License
-              <span class="text-[10px] text-gray-400">↕</span>
               @if (sortKey() === 'license') { <span>{{ sortDir() === 'asc' ? '▲' : '▼' }}</span> }
+            </button>
+          </th>
+          <th class="px-3 py-2">
+            <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('finishedDate')">
+              วันที่อ่านจบ
+              @if (sortKey() === 'finishedDate') { <span>{{ sortDir() === 'asc' ? '▲' : '▼' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('total')">
               จำนวนเล่ม
-              <span class="text-[10px] text-gray-400">↕</span>
               @if (sortKey() === 'total') { <span>{{ sortDir() === 'asc' ? '▲' : '▼' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('story')">
               เนื้อเรื่อง
-              <span class="text-[10px] text-gray-400">↕</span>
               @if (sortKey() === 'story') { <span>{{ sortDir() === 'asc' ? '▲' : '▼' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('character')">
               ตัวละคร
-              <span class="text-[10px] text-gray-400">↕</span>
               @if (sortKey() === 'character') { <span>{{ sortDir() === 'asc' ? '▲' : '▼' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('illustration')">
               ภาพ
-              <span class="text-[10px] text-gray-400">↕</span>
               @if (sortKey() === 'illustration') { <span>{{ sortDir() === 'asc' ? '▲' : '▼' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('storytelling')">
               การเล่าเรื่อง
-              <span class="text-[10px] text-gray-400">↕</span>
               @if (sortKey() === 'storytelling') { <span>{{ sortDir() === 'asc' ? '▲' : '▼' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('score')">
               สรุปคะแนน
-              <span class="text-[10px] text-gray-400">↕</span>
               @if (sortKey() === 'score') { <span>{{ sortDir() === 'asc' ? '▲' : '▼' }}</span> }
             </button>
           </th>
@@ -130,6 +127,7 @@
               <td class="px-3 py-2"><div class="h-4 w-32 animate-pulse rounded bg-gray-200"></div></td>
               <td class="px-3 py-2"><div class="h-4 w-20 animate-pulse rounded bg-gray-200"></div></td>
               <td class="px-3 py-2"><div class="h-4 w-20 animate-pulse rounded bg-gray-200"></div></td>
+              <td class="px-3 py-2"><div class="h-4 w-24 animate-pulse rounded bg-gray-200"></div></td>
               <td class="px-3 py-2"><div class="h-4 w-10 animate-pulse rounded bg-gray-200"></div></td>
               <td class="px-3 py-2"><div class="h-4 w-16 animate-pulse rounded bg-gray-200"></div></td>
               <td class="px-3 py-2"><div class="h-4 w-16 animate-pulse rounded bg-gray-200"></div></td>
@@ -154,6 +152,7 @@
           <td class="px-3 py-2 min-w-[220px] font-medium text-gray-900">{{ item.name }}</td>
           <td class="px-3 py-2">{{ item.type }}</td>
           <td class="px-3 py-2">{{ item.license }}</td>
+          <td class="px-3 py-2">{{ item.finishedDate }}</td>
           <td class="px-3 py-2">{{ item.total }}</td>
           <td class="px-3 py-2">{{ item.story }}</td>
           <td class="px-3 py-2">{{ item.character }}</td>

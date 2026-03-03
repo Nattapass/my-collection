@@ -128,6 +128,10 @@ export class ReviewAnimeComponent {
     if (event.button !== 0) {
       return;
     }
+    const eventTarget = event.target as Element | null;
+    if (eventTarget && this.isInteractiveTarget(eventTarget)) {
+      return;
+    }
     const target = event.currentTarget as HTMLElement | null;
     if (!target) {
       return;
@@ -166,5 +170,13 @@ export class ReviewAnimeComponent {
       }
     }
     this.isDragging = false;
+  }
+
+  private isInteractiveTarget(target: Element) {
+    return Boolean(
+      target.closest(
+        'button, a, input, select, textarea, label, [role="button"], [contenteditable="true"]'
+      )
+    );
   }
 }

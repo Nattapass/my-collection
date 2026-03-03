@@ -57,77 +57,66 @@
           <th class="px-3 py-2 min-w-[220px]">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('name')">
               ชื่อ
-              <span class="text-[10px] text-gray-400">▽</span>
               @if (sortKey() === 'name') { <span>{{ sortDir() === 'asc' ? '▲' : '▼' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('premiered(JP)')">
               วันฉาย
-              <span class="text-[10px] text-gray-400">▽</span>
               @if (sortKey() === 'premiered(JP)') { <span>{{ sortDir() === 'asc' ? '▲' : '▼' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('finished date')">
               วันที่ดูจบ
-              <span class="text-[10px] text-gray-400">▽</span>
               @if (sortKey() === 'finished date') { <span>{{ sortDir() === 'asc' ? '▲' : '▼' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('type')">
               ประเภท
-              <span class="text-[10px] text-gray-400">▽</span>
               @if (sortKey() === 'type') { <span>{{ sortDir() === 'asc' ? '▲' : '▼' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('episode')">
               จำนวนตอน
-              <span class="text-[10px] text-gray-400">▽</span>
               @if (sortKey() === 'episode') { <span>{{ sortDir() === 'asc' ? '▲' : '▼' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('story')">
               เนื้อเรื่อง
-              <span class="text-[10px] text-gray-400">▽</span>
               @if (sortKey() === 'story') { <span>{{ sortDir() === 'asc' ? '▲' : '▼' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('art')">
               ภาพ
-              <span class="text-[10px] text-gray-400">▽</span>
               @if (sortKey() === 'art') { <span>{{ sortDir() === 'asc' ? '▲' : '▼' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('song')">
               เพลง
-              <span class="text-[10px] text-gray-400">▽</span>
               @if (sortKey() === 'song') { <span>{{ sortDir() === 'asc' ? '▲' : '▼' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('character')">
               ตัวละคร
-              <span class="text-[10px] text-gray-400">▽</span>
               @if (sortKey() === 'character') { <span>{{ sortDir() === 'asc' ? '▲' : '▼' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('storytelling')">
               การเล่าเรื่อง
-              <span class="text-[10px] text-gray-400">▽</span>
               @if (sortKey() === 'storytelling') { <span>{{ sortDir() === 'asc' ? '▲' : '▼' }}</span> }
             </button>
           </th>
           <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('Score')">
               รวมคะแนน
-              <span class="text-[10px] text-gray-400">▽</span>
               @if (sortKey() === 'Score') { <span>{{ sortDir() === 'asc' ? '▲' : '▼' }}</span> }
             </button>
           </th>
@@ -242,3 +231,5 @@
     </div>
   </div>
 }
+
+
