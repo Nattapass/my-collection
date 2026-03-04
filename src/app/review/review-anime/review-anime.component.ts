@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgbPaginationModule } from '@ng-bootstrap/ng-bootstrap';
+import { Router } from '@angular/router';
 import { ReviewAnime, ReviewAnimeService } from './review-anime.service';
 
 @Component({
@@ -35,7 +36,10 @@ export class ReviewAnimeComponent {
   page = 1;
   pageSize = 15;
 
-  constructor(private reviewAnimeService: ReviewAnimeService) {}
+  constructor(
+    private reviewAnimeService: ReviewAnimeService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.reviewAnimeService.loadOnce();
@@ -69,6 +73,18 @@ export class ReviewAnimeComponent {
     this.filterType.set('');
     this.pendingType.set('');
     this.page = 1;
+  }
+
+  goToEdit(item: ReviewAnime) {
+    this.router.navigate(['/review/add-review'], {
+      queryParams: {
+        mode: 'edit',
+        category: 'review-anime',
+        fieldName: 'name',
+        fieldValue: item.name,
+      },
+      state: { editData: item },
+    });
   }
 
   setSort(key: keyof ReviewAnime) {

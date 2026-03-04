@@ -46,8 +46,27 @@ export class ReviewAnimeService {
     );
   }
 
+  updateReviewAnimeByName(name: string, payload: ReviewAnime) {
+    return this.http.put<ReviewAnime>(
+      `https://service-collection.vercel.app/review-anime/name/${encodeURIComponent(name)}`,
+      payload
+    );
+  }
+
   prependReviewAnime(item: ReviewAnime) {
     this.reviewAnime.update((list) => [item, ...list]);
+  }
+
+  replaceReviewAnimeByName(name: string, item: ReviewAnime) {
+    this.reviewAnime.update((list) => {
+      const index = list.findIndex((entry) => entry.name === name);
+      if (index === -1) {
+        return [item, ...list];
+      }
+      const updated = [...list];
+      updated[index] = item;
+      return updated;
+    });
   }
 
   private fetch(force = false) {

@@ -45,8 +45,27 @@ export class ReviewGameService {
     );
   }
 
+  updateReviewGameByName(name: string, payload: ReviewGame) {
+    return this.http.put<ReviewGame>(
+      `https://service-collection.vercel.app/review-game/name/${encodeURIComponent(name)}`,
+      payload
+    );
+  }
+
   prependReviewGame(item: ReviewGame) {
     this.reviewGames.update((list) => [item, ...list]);
+  }
+
+  replaceReviewGameByName(name: string, item: ReviewGame) {
+    this.reviewGames.update((list) => {
+      const index = list.findIndex((entry) => entry.name === name);
+      if (index === -1) {
+        return [item, ...list];
+      }
+      const updated = [...list];
+      updated[index] = item;
+      return updated;
+    });
   }
 
   private fetch(force = false) {

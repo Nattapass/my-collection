@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgbPaginationModule } from '@ng-bootstrap/ng-bootstrap';
+import { Router } from '@angular/router';
 import { ReviewGame, ReviewGameService } from './review-game.service';
 
 @Component({
@@ -31,7 +32,10 @@ export class ReviewGameComponent {
   page = 1;
   pageSize = 15;
 
-  constructor(private reviewGameService: ReviewGameService) {}
+  constructor(
+    private reviewGameService: ReviewGameService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.reviewGameService.loadOnce();
@@ -59,6 +63,18 @@ export class ReviewGameComponent {
       this.sortDir.set(defaultDir);
     }
     this.page = 1;
+  }
+
+  goToEdit(item: ReviewGame) {
+    this.router.navigate(['/review/add-review'], {
+      queryParams: {
+        mode: 'edit',
+        category: 'review-game',
+        fieldName: 'name',
+        fieldValue: item.name,
+      },
+      state: { editData: item },
+    });
   }
 
   filteredGames = computed(() => {

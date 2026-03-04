@@ -43,8 +43,27 @@ export class ReviewPlamoService {
     );
   }
 
+  updateReviewPlamoByName(name: string, payload: ReviewPlamo) {
+    return this.http.put<ReviewPlamo>(
+      `https://service-collection.vercel.app/review-plamo/name/${encodeURIComponent(name)}`,
+      payload
+    );
+  }
+
   prependReviewPlamo(item: ReviewPlamo) {
     this.reviewPlamos.update((list) => [item, ...list]);
+  }
+
+  replaceReviewPlamoByName(name: string, item: ReviewPlamo) {
+    this.reviewPlamos.update((list) => {
+      const index = list.findIndex((entry) => entry.name === name);
+      if (index === -1) {
+        return [item, ...list];
+      }
+      const updated = [...list];
+      updated[index] = item;
+      return updated;
+    });
   }
 
   private fetch(force = false) {

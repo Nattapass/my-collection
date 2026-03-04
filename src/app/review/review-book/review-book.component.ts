@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgbPaginationModule } from '@ng-bootstrap/ng-bootstrap';
+import { Router } from '@angular/router';
 import { ReviewBook, ReviewBookService } from './review-book.service';
 
 @Component({
@@ -36,7 +37,10 @@ export class ReviewBookComponent {
   page = 1;
   pageSize = 15;
 
-  constructor(private reviewBookService: ReviewBookService) {}
+  constructor(
+    private reviewBookService: ReviewBookService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.reviewBookService.loadOnce();
@@ -74,6 +78,18 @@ export class ReviewBookComponent {
     this.pendingType.set('');
     this.pendingLicense.set('');
     this.page = 1;
+  }
+
+  goToEdit(item: ReviewBook) {
+    this.router.navigate(['/review/add-review'], {
+      queryParams: {
+        mode: 'edit',
+        category: 'review-book',
+        fieldName: 'name',
+        fieldValue: item.name,
+      },
+      state: { editData: item },
+    });
   }
 
   setSort(key: keyof ReviewBook) {

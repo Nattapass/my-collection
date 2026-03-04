@@ -45,8 +45,27 @@ export class ReviewBookService {
     );
   }
 
+  updateReviewBookByName(name: string, payload: ReviewBook) {
+    return this.http.put<ReviewBook>(
+      `https://service-collection.vercel.app/review-books/name/${encodeURIComponent(name)}`,
+      payload
+    );
+  }
+
   prependReviewBook(item: ReviewBook) {
     this.reviewBooks.update((list) => [item, ...list]);
+  }
+
+  replaceReviewBookByName(name: string, item: ReviewBook) {
+    this.reviewBooks.update((list) => {
+      const index = list.findIndex((entry) => entry.name === name);
+      if (index === -1) {
+        return [item, ...list];
+      }
+      const updated = [...list];
+      updated[index] = item;
+      return updated;
+    });
   }
 
   private fetch(force = false) {

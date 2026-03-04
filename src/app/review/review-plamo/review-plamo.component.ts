@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgbPaginationModule } from '@ng-bootstrap/ng-bootstrap';
+import { Router } from '@angular/router';
 import { ReviewPlamo, ReviewPlamoService } from './review-plamo.service';
 
 @Component({
@@ -24,7 +25,10 @@ export class ReviewPlamoComponent {
   page = 1;
   pageSize = 15;
 
-  constructor(private reviewPlamoService: ReviewPlamoService) {}
+  constructor(
+    private reviewPlamoService: ReviewPlamoService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.reviewPlamoService.loadOnce();
@@ -50,6 +54,18 @@ export class ReviewPlamoComponent {
       this.sortDir.set(defaultDir);
     }
     this.page = 1;
+  }
+
+  goToEdit(item: ReviewPlamo) {
+    this.router.navigate(['/review/add-review'], {
+      queryParams: {
+        mode: 'edit',
+        category: 'review-plamo',
+        fieldName: 'name',
+        fieldValue: item.name,
+      },
+      state: { editData: item },
+    });
   }
 
   filteredPlamos = computed(() => {
