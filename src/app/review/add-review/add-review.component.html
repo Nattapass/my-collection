@@ -43,7 +43,20 @@
         </div>
         <div>
           <label class="text-sm font-medium text-gray-700">License</label>
-          <input class="form-control mt-1" type="text" formControlName="license" />
+          <select
+            class="form-select mt-1"
+            [value]="isBookLicenseCustom() ? '__custom' : reviewBookForm.controls.license.value"
+            (change)="onBookLicenseOptionChange($any($event.target).value)"
+          >
+            <option value="">Select license</option>
+            @for (item of bookLicenseOptions(); track item) {
+              <option [value]="item">{{ item }}</option>
+            }
+            <option value="__custom">Add new license</option>
+          </select>
+          @if (isBookLicenseCustom()) {
+            <input class="form-control mt-2" type="text" placeholder="Enter new license" formControlName="license" />
+          }
         </div>
         <div>
           <label class="text-sm font-medium text-gray-700">วันที่อ่านจบ</label>
@@ -121,7 +134,20 @@
         </div>
         <div>
           <label class="text-sm font-medium text-gray-700">ประเภท</label>
-          <input class="form-control mt-1" type="text" formControlName="type" />
+          <select
+            class="form-select mt-1"
+            [value]="isAnimeTypeCustom() ? '__custom' : reviewAnimeForm.controls.type.value"
+            (change)="onAnimeTypeOptionChange($any($event.target).value)"
+          >
+            <option value="">Select type</option>
+            @for (item of animeTypeOptions(); track item) {
+              <option [value]="item">{{ item }}</option>
+            }
+            <option value="__custom">Add new type</option>
+          </select>
+          @if (isAnimeTypeCustom()) {
+            <input class="form-control mt-2" type="text" placeholder="Enter new type" formControlName="type" />
+          }
         </div>
         <div>
           <label class="text-sm font-medium text-gray-700">จำนวนตอน</label>
@@ -195,7 +221,20 @@
         </div>
         <div>
           <label class="text-sm font-medium text-gray-700">ไลน์</label>
-          <input class="form-control mt-1" type="text" formControlName="line" />
+          <select
+            class="form-select mt-1"
+            [value]="isPlamoLineCustom() ? '__custom' : reviewPlamoForm.controls.line.value"
+            (change)="onPlamoLineOptionChange($any($event.target).value)"
+          >
+            <option value="">Select line</option>
+            @for (item of plamoLineOptions(); track item) {
+              <option [value]="item">{{ item }}</option>
+            }
+            <option value="__custom">Add new line</option>
+          </select>
+          @if (isPlamoLineCustom()) {
+            <input class="form-control mt-2" type="text" placeholder="Enter new line" formControlName="line" />
+          }
         </div>
         <div>
           <label class="text-sm font-medium text-gray-700">วันที่ต่อเสร็จ</label>
@@ -261,7 +300,20 @@
         </div>
         <div>
           <label class="text-sm font-medium text-gray-700">แพลตฟอร์ม</label>
-          <input class="form-control mt-1" type="text" formControlName="platForm" />
+          <select
+            class="form-select mt-1"
+            [value]="isGamePlatFormCustom() ? '__custom' : reviewGameForm.controls.platForm.value"
+            (change)="onGamePlatFormOptionChange($any($event.target).value)"
+          >
+            <option value="">Select platform</option>
+            @for (item of gamePlatFormOptions(); track item) {
+              <option [value]="item">{{ item }}</option>
+            }
+            <option value="__custom">Add new platform</option>
+          </select>
+          @if (isGamePlatFormCustom()) {
+            <input class="form-control mt-2" type="text" placeholder="Enter new platform" formControlName="platForm" />
+          }
         </div>
         <div>
           <label class="text-sm font-medium text-gray-700">วันที่เริ่ม</label>

@@ -53,6 +53,12 @@ export class ReviewAnimeService {
     );
   }
 
+  getTypes() {
+    return this.http.get<string[]>(
+      'https://service-collection.vercel.app/review-anime/types'
+    );
+  }
+
   prependReviewAnime(item: ReviewAnime) {
     this.reviewAnime.update((list) => [item, ...list]);
   }

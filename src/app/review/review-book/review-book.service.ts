@@ -52,6 +52,12 @@ export class ReviewBookService {
     );
   }
 
+  getLicenses() {
+    return this.http.get<string[]>(
+      'https://service-collection.vercel.app/review-books/license'
+    );
+  }
+
   prependReviewBook(item: ReviewBook) {
     this.reviewBooks.update((list) => [item, ...list]);
   }

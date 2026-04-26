@@ -34,6 +34,14 @@ export class AddReviewComponent {
   readonly isSaving = signal(false);
   readonly errorMessage = signal('');
   readonly successMessage = signal('');
+  readonly bookLicenseOptions = signal<string[]>([]);
+  readonly animeTypeOptions = signal<string[]>([]);
+  readonly gamePlatFormOptions = signal<string[]>([]);
+  readonly plamoLineOptions = signal<string[]>([]);
+  readonly isBookLicenseCustom = signal(false);
+  readonly isAnimeTypeCustom = signal(false);
+  readonly isGamePlatFormCustom = signal(false);
+  readonly isPlamoLineCustom = signal(false);
   private readonly editFieldName = signal('name');
   private readonly editFieldValue = signal('');
   private readonly categoryMap: Record<string, Exclude<ReviewCategory, ''>> = {
@@ -134,6 +142,7 @@ export class AddReviewComponent {
         if (!isEdit) {
           this.mode.set('create');
           this.reviewCategory.set(category);
+          this.loadOptionsForCategory(category);
           this.editFieldName.set('name');
           this.editFieldValue.set('');
           return;
@@ -141,6 +150,7 @@ export class AddReviewComponent {
 
         this.mode.set('edit');
         this.reviewCategory.set(category);
+        this.loadOptionsForCategory(category);
         this.editFieldName.set(params.get('fieldName') || 'name');
         this.editFieldValue.set(params.get('fieldValue') || '');
 
@@ -164,7 +174,25 @@ export class AddReviewComponent {
     if (this.isEditMode()) {
       return;
     }
-    this.reviewCategory.set(this.categoryMap[value] ?? '');
+    const category = this.categoryMap[value] ?? '';
+    this.reviewCategory.set(category);
+    this.loadOptionsForCategory(category);
+  }
+
+  onBookLicenseOptionChange(value: string) {
+    this.setOptionValue(this.reviewBookForm, 'license', value, this.isBookLicenseCustom);
+  }
+
+  onAnimeTypeOptionChange(value: string) {
+    this.setOptionValue(this.reviewAnimeForm, 'type', value, this.isAnimeTypeCustom);
+  }
+
+  onGamePlatFormOptionChange(value: string) {
+    this.setOptionValue(this.reviewGameForm, 'platForm', value, this.isGamePlatFormCustom);
+  }
+
+  onPlamoLineOptionChange(value: string) {
+    this.setOptionValue(this.reviewPlamoForm, 'line', value, this.isPlamoLineCustom);
   }
 
   submitLabel() {
@@ -336,6 +364,84 @@ export class AddReviewComponent {
       default:
         return null;
     }
+  }
+
+  private loadOptionsForCategory(category: ReviewCategory) {
+    switch (category) {
+      case 'review-book':
+        this.reviewBookService
+          .getLicenses()
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: (licenses) => {
+              const options = licenses ?? [];
+              this.bookLicenseOptions.set(options);
+              this.syncCustomMode(this.reviewBookForm, 'license', options, this.isBookLicenseCustom);
+            },
+            error: (error) => console.error(error),
+          });
+        break;
+      case 'review-anime':
+        this.reviewAnimeService
+          .getTypes()
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: (types) => {
+              const options = types ?? [];
+              this.animeTypeOptions.set(options);
+              this.syncCustomMode(this.reviewAnimeForm, 'type', options, this.isAnimeTypeCustom);
+            },
+            error: (error) => console.error(error),
+          });
+        break;
+      case 'review-game':
+        this.reviewGameService
+          .getPlatForms()
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: (platForms) => {
+              const options = platForms ?? [];
+              this.gamePlatFormOptions.set(options);
+              this.syncCustomMode(this.reviewGameForm, 'platForm', options, this.isGamePlatFormCustom);
+            },
+            error: (error) => console.error(error),
+          });
+        break;
+      case 'review-plamo':
+        this.reviewPlamoService
+          .getLines()
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: (lines) => {
+              const options = lines ?? [];
+              this.plamoLineOptions.set(options);
+              this.syncCustomMode(this.reviewPlamoForm, 'line', options, this.isPlamoLineCustom);
+            },
+            error: (error) => console.error(error),
+          });
+        break;
+    }
+  }
+
+  private setOptionValue(
+    form: FormGroup,
+    fieldName: string,
+    value: string,
+    customSignal: ReturnType<typeof signal<boolean>>
+  ) {
+    const isCustom = value === '__custom';
+    customSignal.set(isCustom);
+    form.get(fieldName)?.setValue(isCustom ? '' : value);
+  }
+
+  private syncCustomMode(
+    form: FormGroup,
+    fieldName: string,
+    options: string[],
+    customSignal: ReturnType<typeof signal<boolean>>
+  ) {
+    const currentValue = String(form.get(fieldName)?.value ?? '').trim();
+    customSignal.set(Boolean(currentValue) && !options.includes(currentValue));
   }
 
   private setupCalculatedAverage(form: FormGroup, scoreFields: readonly string[], resultField: string) {

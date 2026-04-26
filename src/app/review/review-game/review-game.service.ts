@@ -52,6 +52,12 @@ export class ReviewGameService {
     );
   }
 
+  getPlatForms() {
+    return this.http.get<string[]>(
+      'https://service-collection.vercel.app/review-game/platForm'
+    );
+  }
+
   prependReviewGame(item: ReviewGame) {
     this.reviewGames.update((list) => [item, ...list]);
   }

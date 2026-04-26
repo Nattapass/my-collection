@@ -50,6 +50,12 @@ export class ReviewPlamoService {
     );
   }
 
+  getLines() {
+    return this.http.get<string[]>(
+      'https://service-collection.vercel.app/review-plamo/line'
+    );
+  }
+
   prependReviewPlamo(item: ReviewPlamo) {
     this.reviewPlamos.update((list) => [item, ...list]);
   }
