@@ -79,6 +79,12 @@
             </button>
           </th>
           <th class="px-3 py-2">
+            <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('tier')">
+              Tier
+              @if (sortKey() === 'tier') { <span>{{ sortDir() === 'asc' ? '^' : 'v' }}</span> }
+            </button>
+          </th>
+          <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('episode')">
               จำนวนตอน
               @if (sortKey() === 'episode') { <span>{{ sortDir() === 'asc' ? '^' : 'v' }}</span> }
@@ -135,6 +141,7 @@
               <td class="px-3 py-2"><div class="h-4 w-20 animate-pulse rounded bg-gray-200"></div></td>
               <td class="px-3 py-2"><div class="h-4 w-24 animate-pulse rounded bg-gray-200"></div></td>
               <td class="px-3 py-2"><div class="h-4 w-16 animate-pulse rounded bg-gray-200"></div></td>
+              <td class="px-3 py-2"><div class="h-4 w-12 animate-pulse rounded bg-gray-200"></div></td>
               <td class="px-3 py-2"><div class="h-4 w-10 animate-pulse rounded bg-gray-200"></div></td>
               <td class="px-3 py-2"><div class="h-4 w-10 animate-pulse rounded bg-gray-200"></div></td>
               <td class="px-3 py-2"><div class="h-4 w-10 animate-pulse rounded bg-gray-200"></div></td>
@@ -161,6 +168,7 @@
           <td class="px-3 py-2">{{ item['premiered(JP)'] }}</td>
           <td class="px-3 py-2">{{ item['finished date'] }}</td>
           <td class="px-3 py-2">{{ item.type }}</td>
+          <td class="px-3 py-2">{{ item.tier }}</td>
           <td class="px-3 py-2 text-center">{{ item.episode }}</td>
           <td class="px-3 py-2 text-center">{{ item.story }}</td>
           <td class="px-3 py-2 text-center">{{ item.art }}</td>

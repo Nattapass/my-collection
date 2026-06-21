@@ -5,6 +5,7 @@ export interface ReviewPlamo {
   image: string;
   name: string;
   line: string;
+  tier: string;
   finishedDate: string;
   assembly: number;
   design: number;

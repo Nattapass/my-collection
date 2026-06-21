@@ -5,6 +5,7 @@ export interface ReviewGame {
   image: string;
   name: string;
   platForm: string;
+  tier: string;
   startDate: string;
   endDate: string;
   story: number;

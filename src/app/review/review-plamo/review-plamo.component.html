@@ -60,6 +60,12 @@
             </button>
           </th>
           <th class="px-3 py-2">
+            <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('tier')">
+              Tier
+              @if (sortKey() === 'tier') { <span>{{ sortDir() === 'asc' ? '^' : 'v' }}</span> }
+            </button>
+          </th>
+          <th class="px-3 py-2">
             <button type="button" class="text-xs font-semibold uppercase text-gray-600 d-inline-flex align-items-center gap-1" (click)="setSort('finishedDate')">
               วันที่ต่อเสร็จ
               @if (sortKey() === 'finishedDate') { <span>{{ sortDir() === 'asc' ? '^' : 'v' }}</span> }
@@ -108,6 +114,7 @@
               <td class="px-3 py-2"><div class="h-16 w-16 animate-pulse rounded bg-gray-200"></div></td>
               <td class="px-3 py-2"><div class="h-4 w-32 animate-pulse rounded bg-gray-200"></div></td>
               <td class="px-3 py-2"><div class="h-4 w-20 animate-pulse rounded bg-gray-200"></div></td>
+              <td class="px-3 py-2"><div class="h-4 w-12 animate-pulse rounded bg-gray-200"></div></td>
               <td class="px-3 py-2"><div class="h-4 w-24 animate-pulse rounded bg-gray-200"></div></td>
               <td class="px-3 py-2"><div class="h-4 w-10 animate-pulse rounded bg-gray-200"></div></td>
               <td class="px-3 py-2"><div class="h-4 w-10 animate-pulse rounded bg-gray-200"></div></td>
@@ -131,6 +138,7 @@
           </td>
           <td class="px-3 py-2 min-w-[220px] font-medium text-gray-900">{{ item.name }}</td>
           <td class="px-3 py-2">{{ item.line }}</td>
+          <td class="px-3 py-2">{{ item.tier }}</td>
           <td class="px-3 py-2">{{ item.finishedDate }}</td>
           <td class="px-3 py-2 text-center">{{ item.assembly }}</td>
           <td class="px-3 py-2 text-center">{{ item.design }}</td>
