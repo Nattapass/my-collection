@@ -11,7 +11,7 @@ import { ReviewPlamo, ReviewPlamoService } from '../review-plamo/review-plamo.se
 import { ReviewGame, ReviewGameService } from '../review-game/review-game.service';
 
 type ReviewCategory = 'review-book' | 'review-anime' | 'review-plamo' | 'review-game' | '';
-type ReviewInitialValues = Record<string, string | number>;
+type ReviewInitialValues = Record<string, string | number | string[]>;
 
 @Component({
   selector: 'app-add-review',
@@ -38,6 +38,11 @@ export class AddReviewComponent {
   readonly animeTypeOptions = signal<string[]>([]);
   readonly gamePlatFormOptions = signal<string[]>([]);
   readonly plamoLineOptions = signal<string[]>([]);
+  readonly bookGenreOptions = signal<string[]>([]);
+  readonly animeGenreOptions = signal<string[]>([]);
+  readonly gameGenreOptions = signal<string[]>([]);
+  readonly plamoGenreOptions = signal<string[]>([]);
+  readonly tierOptions = ['S', 'A', 'B', 'C', 'D'] as const;
   readonly isBookLicenseCustom = signal(false);
   readonly isAnimeTypeCustom = signal(false);
   readonly isGamePlatFormCustom = signal(false);
@@ -50,26 +55,18 @@ export class AddReviewComponent {
     'review-plamo': 'review-plamo',
     'review-game': 'review-game',
   };
-  private readonly scoreFields = ['story', 'character', 'illustration', 'storytelling'] as const;
-  private readonly animeScoreFields = ['story', 'art', 'song', 'character', 'storytelling'] as const;
-  private readonly plamoScoreFields = ['assembly', 'design', 'joint', 'worth'] as const;
-  private readonly gameScoreFields = ['story', 'character', 'ost', 'gameplay', 'graphic'] as const;
-  private readonly bookNumericFields = ['total', 'story', 'character', 'illustration', 'storytelling', 'score'] as const;
-  private readonly animeNumericFields = ['episode', 'story', 'art', 'song', 'character', 'storytelling', 'Score'] as const;
-  private readonly plamoNumericFields = ['assembly', 'design', 'joint', 'worth', 'score'] as const;
-  private readonly gameNumericFields = ['story', 'character', 'ost', 'gameplay', 'graphic', 'total'] as const;
+  private readonly bookNumericFields = ['total'] as const;
+  private readonly animeNumericFields = ['episode'] as const;
+  private readonly plamoNumericFields = [] as const;
+  private readonly gameNumericFields = [] as const;
   private readonly initialReviewBookFormValue = {
     name: '',
     type: '',
     license: '',
+    genres: [] as string[],
     tier: '',
     finishedDate: '',
     total: 0,
-    story: 0,
-    character: 0,
-    illustration: 0,
-    storytelling: 0,
-    score: 0,
     comment: '',
     image: '',
   };
@@ -79,42 +76,28 @@ export class AddReviewComponent {
     image: '',
     'finished date': '',
     type: '',
+    genres: [] as string[],
     tier: '',
     episode: 0,
-    story: 0,
-    art: 0,
-    song: 0,
-    character: 0,
-    storytelling: 0,
-    Score: 0,
     comment: '',
   };
   private readonly initialReviewPlamoFormValue = {
     image: '',
     name: '',
     line: '',
+    genres: [] as string[],
     tier: '',
     finishedDate: '',
-    assembly: 0,
-    design: 0,
-    joint: 0,
-    worth: 0,
-    score: 0,
     comment: '',
   };
   private readonly initialReviewGameFormValue = {
     image: '',
     name: '',
     platForm: '',
+    genres: [] as string[],
     tier: '',
     startDate: '',
     endDate: '',
-    story: 0,
-    character: 0,
-    ost: 0,
-    gameplay: 0,
-    graphic: 0,
-    total: 0,
     comment: '',
   };
 
@@ -129,12 +112,7 @@ export class AddReviewComponent {
     private reviewAnimeService: ReviewAnimeService,
     private reviewPlamoService: ReviewPlamoService,
     private reviewGameService: ReviewGameService
-  ) {
-    this.setupCalculatedAverage(this.reviewBookForm, this.scoreFields, 'score');
-    this.setupCalculatedAverage(this.reviewAnimeForm, this.animeScoreFields, 'Score');
-    this.setupCalculatedAverage(this.reviewPlamoForm, this.plamoScoreFields, 'score');
-    this.setupCalculatedAverage(this.reviewGameForm, this.gameScoreFields, 'total');
-  }
+  ) {}
 
   ngOnInit() {
     this.route.queryParamMap
@@ -197,6 +175,32 @@ export class AddReviewComponent {
 
   onPlamoLineOptionChange(value: string) {
     this.setOptionValue(this.reviewPlamoForm, 'line', value, this.isPlamoLineCustom);
+  }
+
+  addGenre(form: FormGroup, value: string) {
+    const genre = value.trim();
+    if (!genre) {
+      return;
+    }
+    const current = this.getGenres(form);
+    if (current.some((item) => item.toLowerCase() === genre.toLowerCase())) {
+      return;
+    }
+    form.get('genres')?.setValue([...current, genre]);
+    form.get('genres')?.markAsTouched();
+  }
+
+  removeGenre(form: FormGroup, value: string) {
+    const next = this.getGenres(form).filter((item) => item !== value);
+    form.get('genres')?.setValue(next);
+    form.get('genres')?.markAsTouched();
+  }
+
+  getGenres(form: FormGroup) {
+    const value = form.get('genres')?.value;
+    return Array.isArray(value)
+      ? value.filter((item): item is string => typeof item === 'string' && Boolean(item.trim()))
+      : [];
   }
 
   submitLabel() {
@@ -374,6 +378,13 @@ export class AddReviewComponent {
     switch (category) {
       case 'review-book':
         this.reviewBookService
+          .getGenres()
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: (genres) => this.bookGenreOptions.set(genres ?? []),
+            error: (error) => console.error(error),
+          });
+        this.reviewBookService
           .getLicenses()
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
@@ -386,6 +397,13 @@ export class AddReviewComponent {
           });
         break;
       case 'review-anime':
+        this.reviewAnimeService
+          .getGenres()
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: (genres) => this.animeGenreOptions.set(genres ?? []),
+            error: (error) => console.error(error),
+          });
         this.reviewAnimeService
           .getTypes()
           .pipe(takeUntilDestroyed(this.destroyRef))
@@ -400,6 +418,13 @@ export class AddReviewComponent {
         break;
       case 'review-game':
         this.reviewGameService
+          .getGenres()
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: (genres) => this.gameGenreOptions.set(genres ?? []),
+            error: (error) => console.error(error),
+          });
+        this.reviewGameService
           .getPlatForms()
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
@@ -412,6 +437,13 @@ export class AddReviewComponent {
           });
         break;
       case 'review-plamo':
+        this.reviewPlamoService
+          .getGenres()
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: (genres) => this.plamoGenreOptions.set(genres ?? []),
+            error: (error) => console.error(error),
+          });
         this.reviewPlamoService
           .getLines()
           .pipe(takeUntilDestroyed(this.destroyRef))
@@ -448,20 +480,6 @@ export class AddReviewComponent {
     customSignal.set(Boolean(currentValue) && !options.includes(currentValue));
   }
 
-  private setupCalculatedAverage(form: FormGroup, scoreFields: readonly string[], resultField: string) {
-    form.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
-        const total = scoreFields.reduce((sum, key) => {
-          const controlValue = form.get(key)?.value;
-          return sum + this.toNumber(controlValue);
-        }, 0);
-        const average = total / scoreFields.length;
-        const rounded = Number.isFinite(average) ? Number(average.toFixed(2)) : 0;
-        form.get(resultField)?.setValue(rounded, { emitEvent: false });
-      });
-  }
-
   private createRequiredForm<T extends ReviewInitialValues>(initialValues: T) {
     const controls = Object.entries(initialValues).reduce((acc, [key, value]) => {
       acc[key as keyof T] = new FormControl(value as T[keyof T], {
@@ -483,6 +501,15 @@ export class AddReviewComponent {
         acc[key] = this.toNumber(value as number | string | null | undefined);
       } else if (typeof value === 'string') {
         acc[key] = value.trim();
+      } else if (Array.isArray(value)) {
+        acc[key] = Array.from(
+          new Set(
+            value
+              .filter((item): item is string => typeof item === 'string')
+              .map((item) => item.trim())
+              .filter(Boolean)
+          )
+        );
       } else {
         acc[key] = value;
       }

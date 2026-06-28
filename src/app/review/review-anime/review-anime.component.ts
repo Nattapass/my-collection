@@ -18,12 +18,6 @@ export class ReviewAnimeComponent {
   private dragStartScrollLeft = 0;
   private readonly numberKeys = [
     'episode',
-    'story',
-    'art',
-    'song',
-    'character',
-    'storytelling',
-    'Score',
   ] as const;
   reviewAnime = this.reviewAnimeService.reviewAnime;
   isLoading = this.reviewAnimeService.isLoading;
@@ -106,7 +100,9 @@ export class ReviewAnimeComponent {
     return this.reviewAnime().filter((item) => {
       const matchesName = !term || item.name.toLowerCase().includes(term);
       const matchesType = !type || item.type.toLowerCase() === type;
-      return matchesName && matchesType;
+      const matchesGenre =
+        !term || this.genresOf(item).some((genre) => genre.toLowerCase().includes(term));
+      return (matchesName || matchesGenre) && matchesType;
     });
   });
 
@@ -139,6 +135,22 @@ export class ReviewAnimeComponent {
     const values = new Set(this.reviewAnime().map((item) => item.type).filter(Boolean));
     return Array.from(values).sort();
   });
+
+  genresOf(item: ReviewAnime) {
+    return Array.isArray(item.genres) ? item.genres.filter(Boolean) : [];
+  }
+
+  genreClass(genre: string) {
+    return `genre-chip-${this.hashText(genre) % 6}`;
+  }
+
+  tierClass(tier: string) {
+    return `tier-${String(tier || '').toLowerCase()}`;
+  }
+
+  private hashText(value: string) {
+    return Array.from(value).reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  }
 
   onDragStart(event: PointerEvent) {
     if (event.button !== 0) {

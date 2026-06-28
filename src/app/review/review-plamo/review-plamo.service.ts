@@ -5,6 +5,7 @@ export interface ReviewPlamo {
   image: string;
   name: string;
   line: string;
+  genres: string[];
   tier: string;
   finishedDate: string;
   assembly: number;
@@ -54,6 +55,12 @@ export class ReviewPlamoService {
   getLines() {
     return this.http.get<string[]>(
       'https://service-collection.vercel.app/review-plamo/line'
+    );
+  }
+
+  getGenres() {
+    return this.http.get<string[]>(
+      'https://service-collection.vercel.app/review-plamo/genres'
     );
   }
 

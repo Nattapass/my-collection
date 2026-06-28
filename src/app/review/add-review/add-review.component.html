@@ -1,4 +1,4 @@
-﻿<div class="rounded-md border border-gray-200 bg-white p-4">
+<div class="rounded-md border border-gray-200 bg-white p-4">
   <div class="d-flex justify-between align-items-center">
     <div>
       <h3 class="text-lg font-semibold text-gray-900">{{ pageTitle() }}</h3>
@@ -34,7 +34,7 @@
           <input class="form-control mt-1" type="text" formControlName="name" />
         </div>
         <div>
-          <label class="text-sm font-medium text-gray-700">ประเภท</label>
+          <label class="text-sm font-medium text-gray-700">ประเภทหนังสือ</label>
           <select class="form-select mt-1" formControlName="type">
             <option value="">Select type</option>
             <option value="Manga">Manga</option>
@@ -60,7 +60,12 @@
         </div>
         <div>
           <label class="text-sm font-medium text-gray-700">Tier</label>
-          <input class="form-control mt-1" type="text" formControlName="tier" />
+          <select class="form-select mt-1" formControlName="tier">
+            <option value="">Select tier</option>
+            @for (tier of tierOptions; track tier) {
+              <option [value]="tier">{{ tier }}</option>
+            }
+          </select>
         </div>
         <div>
           <label class="text-sm font-medium text-gray-700">วันที่อ่านจบ</label>
@@ -70,26 +75,23 @@
           <label class="text-sm font-medium text-gray-700">จำนวนเล่ม</label>
           <input class="form-control mt-1" type="number" min="0" formControlName="total" />
         </div>
-        <div>
-          <label class="text-sm font-medium text-gray-700">เนื้อเรื่อง</label>
-          <input class="form-control mt-1" type="number" min="0" formControlName="story" />
-        </div>
-        <div>
-          <label class="text-sm font-medium text-gray-700">ตัวละคร</label>
-          <input class="form-control mt-1" type="number" min="0" formControlName="character" />
-        </div>
-        <div>
-          <label class="text-sm font-medium text-gray-700">ภาพ</label>
-          <input class="form-control mt-1" type="number" min="0" formControlName="illustration" />
-        </div>
-        <div>
-          <label class="text-sm font-medium text-gray-700">การเล่าเรื่อง</label>
-          <input class="form-control mt-1" type="number" min="0" formControlName="storytelling" />
-        </div>
-        <div>
-          <label class="text-sm font-medium text-gray-700">สรุปคะแนน</label>
-          <input class="form-control mt-1" type="number" min="0" formControlName="score" readonly />
-          <p class="mt-1 text-xs text-gray-500">Score is calculated automatically.</p>
+        <div class="sm:col-span-2">
+          <label class="text-sm font-medium text-gray-700">ประเภท</label>
+          <select class="form-select mt-1" (change)="addGenre(reviewBookForm, $any($event.target).value); $any($event.target).value = ''">
+            <option value="">Select genre</option>
+            @for (item of bookGenreOptions(); track item) {
+              <option [value]="item">{{ item }}</option>
+            }
+          </select>
+          <div class="mt-2 d-flex gap-2">
+            <input #bookGenreInput class="form-control" type="text" placeholder="Add new genre" />
+            <button type="button" class="rounded-md border border-gray-300 px-3 py-2 text-sm" (click)="addGenre(reviewBookForm, bookGenreInput.value); bookGenreInput.value = ''">Add</button>
+          </div>
+          <div class="mt-2 flex flex-wrap gap-2">
+            @for (genre of getGenres(reviewBookForm); track genre) {
+              <button type="button" class="review-genre-chip genre-chip-0" (click)="removeGenre(reviewBookForm, genre)">{{ genre }} x</button>
+            }
+          </div>
         </div>
         <div class="sm:col-span-2">
           <label class="text-sm font-medium text-gray-700">รูป</label>
@@ -103,18 +105,10 @@
 
       <div class="mt-4 d-flex justify-between align-items-center gap-3">
         <div>
-          @if (errorMessage()) {
-            <p class="text-sm text-red-600">{{ errorMessage() }}</p>
-          }
-          @if (successMessage()) {
-            <p class="text-sm text-green-600">{{ successMessage() }}</p>
-          }
+          @if (errorMessage()) { <p class="text-sm text-red-600">{{ errorMessage() }}</p> }
+          @if (successMessage()) { <p class="text-sm text-green-600">{{ successMessage() }}</p> }
         </div>
-        <button
-          type="submit"
-          class="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
-          [disabled]="isSaving() || reviewBookForm.invalid"
-        >
+        <button type="submit" class="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500" [disabled]="isSaving() || reviewBookForm.invalid">
           {{ isSaving() ? savingLabel() : submitLabel() }}
         </button>
       </div>
@@ -137,12 +131,8 @@
           <input class="form-control mt-1" type="text" formControlName="finished date" />
         </div>
         <div>
-          <label class="text-sm font-medium text-gray-700">ประเภท</label>
-          <select
-            class="form-select mt-1"
-            [value]="isAnimeTypeCustom() ? '__custom' : reviewAnimeForm.controls.type.value"
-            (change)="onAnimeTypeOptionChange($any($event.target).value)"
-          >
+          <label class="text-sm font-medium text-gray-700">ประเภทอนิเมะ</label>
+          <select class="form-select mt-1" [value]="isAnimeTypeCustom() ? '__custom' : reviewAnimeForm.controls.type.value" (change)="onAnimeTypeOptionChange($any($event.target).value)">
             <option value="">Select type</option>
             @for (item of animeTypeOptions(); track item) {
               <option [value]="item">{{ item }}</option>
@@ -155,36 +145,34 @@
         </div>
         <div>
           <label class="text-sm font-medium text-gray-700">Tier</label>
-          <input class="form-control mt-1" type="text" formControlName="tier" />
+          <select class="form-select mt-1" formControlName="tier">
+            <option value="">Select tier</option>
+            @for (tier of tierOptions; track tier) {
+              <option [value]="tier">{{ tier }}</option>
+            }
+          </select>
         </div>
         <div>
           <label class="text-sm font-medium text-gray-700">จำนวนตอน</label>
           <input class="form-control mt-1" type="number" min="0" formControlName="episode" />
         </div>
-        <div>
-          <label class="text-sm font-medium text-gray-700">เนื้อเรื่อง</label>
-          <input class="form-control mt-1" type="number" min="0" formControlName="story" />
-        </div>
-        <div>
-          <label class="text-sm font-medium text-gray-700">ภาพ</label>
-          <input class="form-control mt-1" type="number" min="0" formControlName="art" />
-        </div>
-        <div>
-          <label class="text-sm font-medium text-gray-700">เพลง</label>
-          <input class="form-control mt-1" type="number" min="0" formControlName="song" />
-        </div>
-        <div>
-          <label class="text-sm font-medium text-gray-700">ตัวละคร</label>
-          <input class="form-control mt-1" type="number" min="0" formControlName="character" />
-        </div>
-        <div>
-          <label class="text-sm font-medium text-gray-700">การเล่าเรื่อง</label>
-          <input class="form-control mt-1" type="number" min="0" formControlName="storytelling" />
-        </div>
-        <div>
-          <label class="text-sm font-medium text-gray-700">รวมคะแนน</label>
-          <input class="form-control mt-1" type="number" min="0" formControlName="Score" readonly />
-          <p class="mt-1 text-xs text-gray-500">Score is calculated automatically.</p>
+        <div class="sm:col-span-2">
+          <label class="text-sm font-medium text-gray-700">ประเภท</label>
+          <select class="form-select mt-1" (change)="addGenre(reviewAnimeForm, $any($event.target).value); $any($event.target).value = ''">
+            <option value="">Select genre</option>
+            @for (item of animeGenreOptions(); track item) {
+              <option [value]="item">{{ item }}</option>
+            }
+          </select>
+          <div class="mt-2 d-flex gap-2">
+            <input #animeGenreInput class="form-control" type="text" placeholder="Add new genre" />
+            <button type="button" class="rounded-md border border-gray-300 px-3 py-2 text-sm" (click)="addGenre(reviewAnimeForm, animeGenreInput.value); animeGenreInput.value = ''">Add</button>
+          </div>
+          <div class="mt-2 flex flex-wrap gap-2">
+            @for (genre of getGenres(reviewAnimeForm); track genre) {
+              <button type="button" class="review-genre-chip genre-chip-1" (click)="removeGenre(reviewAnimeForm, genre)">{{ genre }} x</button>
+            }
+          </div>
         </div>
         <div class="sm:col-span-2">
           <label class="text-sm font-medium text-gray-700">รูป</label>
@@ -198,18 +186,10 @@
 
       <div class="mt-4 d-flex justify-between align-items-center gap-3">
         <div>
-          @if (errorMessage()) {
-            <p class="text-sm text-red-600">{{ errorMessage() }}</p>
-          }
-          @if (successMessage()) {
-            <p class="text-sm text-green-600">{{ successMessage() }}</p>
-          }
+          @if (errorMessage()) { <p class="text-sm text-red-600">{{ errorMessage() }}</p> }
+          @if (successMessage()) { <p class="text-sm text-green-600">{{ successMessage() }}</p> }
         </div>
-        <button
-          type="submit"
-          class="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
-          [disabled]="isSaving() || reviewAnimeForm.invalid"
-        >
+        <button type="submit" class="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500" [disabled]="isSaving() || reviewAnimeForm.invalid">
           {{ isSaving() ? savingLabel() : submitLabel() }}
         </button>
       </div>
@@ -229,11 +209,7 @@
         </div>
         <div>
           <label class="text-sm font-medium text-gray-700">ไลน์</label>
-          <select
-            class="form-select mt-1"
-            [value]="isPlamoLineCustom() ? '__custom' : reviewPlamoForm.controls.line.value"
-            (change)="onPlamoLineOptionChange($any($event.target).value)"
-          >
+          <select class="form-select mt-1" [value]="isPlamoLineCustom() ? '__custom' : reviewPlamoForm.controls.line.value" (change)="onPlamoLineOptionChange($any($event.target).value)">
             <option value="">Select line</option>
             @for (item of plamoLineOptions(); track item) {
               <option [value]="item">{{ item }}</option>
@@ -246,32 +222,34 @@
         </div>
         <div>
           <label class="text-sm font-medium text-gray-700">Tier</label>
-          <input class="form-control mt-1" type="text" formControlName="tier" />
+          <select class="form-select mt-1" formControlName="tier">
+            <option value="">Select tier</option>
+            @for (tier of tierOptions; track tier) {
+              <option [value]="tier">{{ tier }}</option>
+            }
+          </select>
         </div>
         <div>
           <label class="text-sm font-medium text-gray-700">วันที่ต่อเสร็จ</label>
           <input class="form-control mt-1" type="text" formControlName="finishedDate" />
         </div>
-        <div>
-          <label class="text-sm font-medium text-gray-700">การประกอบ</label>
-          <input class="form-control mt-1" type="number" min="0" formControlName="assembly" />
-        </div>
-        <div>
-          <label class="text-sm font-medium text-gray-700">ความสวย</label>
-          <input class="form-control mt-1" type="number" min="0" formControlName="design" />
-        </div>
-        <div>
-          <label class="text-sm font-medium text-gray-700">ความแข็งแรง</label>
-          <input class="form-control mt-1" type="number" min="0" formControlName="joint" />
-        </div>
-        <div>
-          <label class="text-sm font-medium text-gray-700">ความคุ้มค่า</label>
-          <input class="form-control mt-1" type="number" min="0" formControlName="worth" />
-        </div>
-        <div>
-          <label class="text-sm font-medium text-gray-700">สรุปคะแนน</label>
-          <input class="form-control mt-1" type="number" min="0" formControlName="score" readonly />
-          <p class="mt-1 text-xs text-gray-500">Score is calculated automatically.</p>
+        <div class="sm:col-span-2">
+          <label class="text-sm font-medium text-gray-700">ประเภท</label>
+          <select class="form-select mt-1" (change)="addGenre(reviewPlamoForm, $any($event.target).value); $any($event.target).value = ''">
+            <option value="">Select genre</option>
+            @for (item of plamoGenreOptions(); track item) {
+              <option [value]="item">{{ item }}</option>
+            }
+          </select>
+          <div class="mt-2 d-flex gap-2">
+            <input #plamoGenreInput class="form-control" type="text" placeholder="Add new genre" />
+            <button type="button" class="rounded-md border border-gray-300 px-3 py-2 text-sm" (click)="addGenre(reviewPlamoForm, plamoGenreInput.value); plamoGenreInput.value = ''">Add</button>
+          </div>
+          <div class="mt-2 flex flex-wrap gap-2">
+            @for (genre of getGenres(reviewPlamoForm); track genre) {
+              <button type="button" class="review-genre-chip genre-chip-2" (click)="removeGenre(reviewPlamoForm, genre)">{{ genre }} x</button>
+            }
+          </div>
         </div>
         <div class="sm:col-span-2">
           <label class="text-sm font-medium text-gray-700">ความคิดเห็น</label>
@@ -281,18 +259,10 @@
 
       <div class="mt-4 d-flex justify-between align-items-center gap-3">
         <div>
-          @if (errorMessage()) {
-            <p class="text-sm text-red-600">{{ errorMessage() }}</p>
-          }
-          @if (successMessage()) {
-            <p class="text-sm text-green-600">{{ successMessage() }}</p>
-          }
+          @if (errorMessage()) { <p class="text-sm text-red-600">{{ errorMessage() }}</p> }
+          @if (successMessage()) { <p class="text-sm text-green-600">{{ successMessage() }}</p> }
         </div>
-        <button
-          type="submit"
-          class="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
-          [disabled]="isSaving() || reviewPlamoForm.invalid"
-        >
+        <button type="submit" class="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500" [disabled]="isSaving() || reviewPlamoForm.invalid">
           {{ isSaving() ? savingLabel() : submitLabel() }}
         </button>
       </div>
@@ -312,11 +282,7 @@
         </div>
         <div>
           <label class="text-sm font-medium text-gray-700">แพลตฟอร์ม</label>
-          <select
-            class="form-select mt-1"
-            [value]="isGamePlatFormCustom() ? '__custom' : reviewGameForm.controls.platForm.value"
-            (change)="onGamePlatFormOptionChange($any($event.target).value)"
-          >
+          <select class="form-select mt-1" [value]="isGamePlatFormCustom() ? '__custom' : reviewGameForm.controls.platForm.value" (change)="onGamePlatFormOptionChange($any($event.target).value)">
             <option value="">Select platform</option>
             @for (item of gamePlatFormOptions(); track item) {
               <option [value]="item">{{ item }}</option>
@@ -329,7 +295,12 @@
         </div>
         <div>
           <label class="text-sm font-medium text-gray-700">Tier</label>
-          <input class="form-control mt-1" type="text" formControlName="tier" />
+          <select class="form-select mt-1" formControlName="tier">
+            <option value="">Select tier</option>
+            @for (tier of tierOptions; track tier) {
+              <option [value]="tier">{{ tier }}</option>
+            }
+          </select>
         </div>
         <div>
           <label class="text-sm font-medium text-gray-700">วันที่เริ่ม</label>
@@ -339,30 +310,23 @@
           <label class="text-sm font-medium text-gray-700">วันที่เล่นจบ</label>
           <input class="form-control mt-1" type="text" formControlName="endDate" />
         </div>
-        <div>
-          <label class="text-sm font-medium text-gray-700">เนื้อเรื่อง</label>
-          <input class="form-control mt-1" type="number" min="0" formControlName="story" />
-        </div>
-        <div>
-          <label class="text-sm font-medium text-gray-700">ตัวละคร</label>
-          <input class="form-control mt-1" type="number" min="0" formControlName="character" />
-        </div>
-        <div>
-          <label class="text-sm font-medium text-gray-700">เพลงประกอบ</label>
-          <input class="form-control mt-1" type="number" min="0" formControlName="ost" />
-        </div>
-        <div>
-          <label class="text-sm font-medium text-gray-700">เกมเพลย์</label>
-          <input class="form-control mt-1" type="number" min="0" formControlName="gameplay" />
-        </div>
-        <div>
-          <label class="text-sm font-medium text-gray-700">กราฟิก</label>
-          <input class="form-control mt-1" type="number" min="0" formControlName="graphic" />
-        </div>
-        <div>
-          <label class="text-sm font-medium text-gray-700">รวม</label>
-          <input class="form-control mt-1" type="number" min="0" formControlName="total" readonly />
-          <p class="mt-1 text-xs text-gray-500">Total is calculated automatically.</p>
+        <div class="sm:col-span-2">
+          <label class="text-sm font-medium text-gray-700">ประเภท</label>
+          <select class="form-select mt-1" (change)="addGenre(reviewGameForm, $any($event.target).value); $any($event.target).value = ''">
+            <option value="">Select genre</option>
+            @for (item of gameGenreOptions(); track item) {
+              <option [value]="item">{{ item }}</option>
+            }
+          </select>
+          <div class="mt-2 d-flex gap-2">
+            <input #gameGenreInput class="form-control" type="text" placeholder="Add new genre" />
+            <button type="button" class="rounded-md border border-gray-300 px-3 py-2 text-sm" (click)="addGenre(reviewGameForm, gameGenreInput.value); gameGenreInput.value = ''">Add</button>
+          </div>
+          <div class="mt-2 flex flex-wrap gap-2">
+            @for (genre of getGenres(reviewGameForm); track genre) {
+              <button type="button" class="review-genre-chip genre-chip-3" (click)="removeGenre(reviewGameForm, genre)">{{ genre }} x</button>
+            }
+          </div>
         </div>
         <div class="sm:col-span-2">
           <label class="text-sm font-medium text-gray-700">ความคิดเห็น</label>
@@ -372,18 +336,10 @@
 
       <div class="mt-4 d-flex justify-between align-items-center gap-3">
         <div>
-          @if (errorMessage()) {
-            <p class="text-sm text-red-600">{{ errorMessage() }}</p>
-          }
-          @if (successMessage()) {
-            <p class="text-sm text-green-600">{{ successMessage() }}</p>
-          }
+          @if (errorMessage()) { <p class="text-sm text-red-600">{{ errorMessage() }}</p> }
+          @if (successMessage()) { <p class="text-sm text-green-600">{{ successMessage() }}</p> }
         </div>
-        <button
-          type="submit"
-          class="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
-          [disabled]="isSaving() || reviewGameForm.invalid"
-        >
+        <button type="submit" class="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500" [disabled]="isSaving() || reviewGameForm.invalid">
           {{ isSaving() ? savingLabel() : submitLabel() }}
         </button>
       </div>

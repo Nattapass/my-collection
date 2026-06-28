@@ -22,6 +22,10 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Server,
   },
   {
+    path: 'tier-list',
+    renderMode: RenderMode.Server,
+  },
+  {
     path: '**', // All other routes will be rendered on the server (SSR)
     renderMode: RenderMode.Server,
   },

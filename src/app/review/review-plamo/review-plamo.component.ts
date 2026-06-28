@@ -16,7 +16,7 @@ export class ReviewPlamoComponent {
   private isDragging = false;
   private dragStartX = 0;
   private dragStartScrollLeft = 0;
-  private readonly numberKeys = ['assembly', 'design', 'joint', 'worth', 'score'] as const;
+  private readonly numberKeys = [] as const;
   reviewPlamos = this.reviewPlamoService.reviewPlamos;
   isLoading = this.reviewPlamoService.isLoading;
   searchTerm = signal('');
@@ -72,7 +72,9 @@ export class ReviewPlamoComponent {
     const term = this.searchTerm().trim().toLowerCase();
     return this.reviewPlamos().filter((item) => {
       const matchesName = !term || item.name.toLowerCase().includes(term);
-      return matchesName;
+      const matchesGenre =
+        !term || this.genresOf(item).some((genre) => genre.toLowerCase().includes(term));
+      return matchesName || matchesGenre;
     });
   });
 
@@ -116,6 +118,22 @@ export class ReviewPlamoComponent {
       return 0;
     }
     return new Date(year, month - 1, day).getTime();
+  }
+
+  genresOf(item: ReviewPlamo) {
+    return Array.isArray(item.genres) ? item.genres.filter(Boolean) : [];
+  }
+
+  genreClass(genre: string) {
+    return `genre-chip-${this.hashText(genre) % 6}`;
+  }
+
+  tierClass(tier: string) {
+    return `tier-${String(tier || '').toLowerCase()}`;
+  }
+
+  private hashText(value: string) {
+    return Array.from(value).reduce((sum, char) => sum + char.charCodeAt(0), 0);
   }
 
   onDragStart(event: PointerEvent) {

@@ -16,14 +16,7 @@ export class ReviewGameComponent {
   private isDragging = false;
   private dragStartX = 0;
   private dragStartScrollLeft = 0;
-  private readonly numberKeys = [
-    'story',
-    'character',
-    'ost',
-    'gameplay',
-    'graphic',
-    'total',
-  ] as const;
+  private readonly numberKeys = [] as const;
   reviewGames = this.reviewGameService.reviewGames;
   isLoading = this.reviewGameService.isLoading;
   searchTerm = signal('');
@@ -81,7 +74,9 @@ export class ReviewGameComponent {
     const term = this.searchTerm().trim().toLowerCase();
     return this.reviewGames().filter((item) => {
       const matchesName = !term || item.name.toLowerCase().includes(term);
-      return matchesName;
+      const matchesGenre =
+        !term || this.genresOf(item).some((genre) => genre.toLowerCase().includes(term));
+      return matchesName || matchesGenre;
     });
   });
 
@@ -129,6 +124,22 @@ export class ReviewGameComponent {
     }
     const parsed = new Date(normalized).getTime();
     return Number.isNaN(parsed) ? 0 : parsed;
+  }
+
+  genresOf(item: ReviewGame) {
+    return Array.isArray(item.genres) ? item.genres.filter(Boolean) : [];
+  }
+
+  genreClass(genre: string) {
+    return `genre-chip-${this.hashText(genre) % 6}`;
+  }
+
+  tierClass(tier: string) {
+    return `tier-${String(tier || '').toLowerCase()}`;
+  }
+
+  private hashText(value: string) {
+    return Array.from(value).reduce((sum, char) => sum + char.charCodeAt(0), 0);
   }
 
   onDragStart(event: PointerEvent) {

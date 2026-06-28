@@ -11,6 +11,7 @@ import { ReviewAnimeComponent } from './review/review-anime/review-anime.compone
 import { ReviewPlamoComponent } from './review/review-plamo/review-plamo.component';
 import { LoginComponent } from './login/login.component';
 import { authGuard, loginGuard } from './auth/auth.guard';
+import { TierListComponent } from './tier-list/tier-list.component';
 
 export const routes: Routes = [
   {
@@ -45,6 +46,11 @@ export const routes: Routes = [
       { path: 'review-plamo', component: ReviewPlamoComponent },
       { path: 'add-review', component: AddReviewComponent }
     ]
+  },
+  {
+    path: 'tier-list',
+    component: TierListComponent,
+    canActivate: [authGuard]
   },
   {
     path: 'dashboard',

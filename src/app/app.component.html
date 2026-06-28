@@ -55,6 +55,8 @@
                 [ngClass]="[(selectedOption() === 'Models' ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white')]">Models</a>
               <a routerLink="/review" (click)="selectTab('Review')" class="rounded-md px-3 py-2 text-sm font-medium"
                 [ngClass]="[(selectedOption() === 'Review' ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white')]">Review</a>
+              <a routerLink="/tier-list" (click)="selectTab('Tier List')" class="rounded-md px-3 py-2 text-sm font-medium"
+                [ngClass]="[(selectedOption() === 'Tier List' ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white')]">Tier List</a>
             </div>
           </div>
         </div>
@@ -81,8 +83,8 @@
           class="text-gray-300 hover:bg-gray-700 hover:text-white block rounded-md px-3 py-2 text-base font-medium">Manga</a>
         <a routerLink="/review"
           class="text-gray-300 hover:bg-gray-700 hover:text-white block rounded-md px-3 py-2 text-base font-medium">Review</a>
-        <a href="#"
-          class="text-gray-300 hover:bg-gray-700 hover:text-white block rounded-md px-3 py-2 text-base font-medium">Anime</a>
+        <a routerLink="/tier-list"
+          class="text-gray-300 hover:bg-gray-700 hover:text-white block rounded-md px-3 py-2 text-base font-medium">Tier List</a>
         <a href="#"
           class="text-gray-300 hover:bg-gray-700 hover:text-white block rounded-md px-3 py-2 text-base font-medium">Calendar</a>
       </div>

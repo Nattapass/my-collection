@@ -7,6 +7,7 @@ export interface ReviewAnime {
   image: string;
   'finished date': string;
   type: string;
+  genres: string[];
   tier: string;
   episode: number;
   story: number;
@@ -57,6 +58,12 @@ export class ReviewAnimeService {
   getTypes() {
     return this.http.get<string[]>(
       'https://service-collection.vercel.app/review-anime/types'
+    );
+  }
+
+  getGenres() {
+    return this.http.get<string[]>(
+      'https://service-collection.vercel.app/review-anime/genres'
     );
   }
 

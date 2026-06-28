@@ -5,6 +5,7 @@ export interface ReviewGame {
   image: string;
   name: string;
   platForm: string;
+  genres: string[];
   tier: string;
   startDate: string;
   endDate: string;
@@ -56,6 +57,12 @@ export class ReviewGameService {
   getPlatForms() {
     return this.http.get<string[]>(
       'https://service-collection.vercel.app/review-game/platForm'
+    );
+  }
+
+  getGenres() {
+    return this.http.get<string[]>(
+      'https://service-collection.vercel.app/review-game/genres'
     );
   }
 

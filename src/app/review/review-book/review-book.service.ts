@@ -5,6 +5,7 @@ export interface ReviewBook {
   name: string;
   type: string;
   license: string;
+  genres: string[];
   tier: string;
   finishedDate: string;
   total: number;
@@ -56,6 +57,12 @@ export class ReviewBookService {
   getLicenses() {
     return this.http.get<string[]>(
       'https://service-collection.vercel.app/review-books/license'
+    );
+  }
+
+  getGenres() {
+    return this.http.get<string[]>(
+      'https://service-collection.vercel.app/review-books/genres'
     );
   }
 

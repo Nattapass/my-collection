@@ -13,7 +13,7 @@ export class AppComponent {
   title = 'my-collection';
   data: any;
   isShow = false;
-  shippingOptions = signal(['Dashboard', 'Manga', 'Models', 'Review']);
+  shippingOptions = signal(['Dashboard', 'Manga', 'Models', 'Review', 'Tier List']);
   selectedOption = linkedSignal(() => this.shippingOptions()[0]);
   currentTab = 'Dashboard';
 
