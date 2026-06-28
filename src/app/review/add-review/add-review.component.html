@@ -69,7 +69,12 @@
         </div>
         <div>
           <label class="text-sm font-medium text-gray-700">วันที่อ่านจบ</label>
-          <input class="form-control mt-1" type="text" formControlName="finishedDate" />
+          <input
+            class="form-control mt-1"
+            type="date"
+            [value]="dateInputValue(reviewBookForm, 'finishedDate')"
+            (change)="onDateChange(reviewBookForm, 'finishedDate', $any($event.target).value)"
+          />
         </div>
         <div>
           <label class="text-sm font-medium text-gray-700">จำนวนเล่ม</label>
@@ -124,11 +129,21 @@
         </div>
         <div>
           <label class="text-sm font-medium text-gray-700">วันฉาย</label>
-          <input class="form-control mt-1" type="text" formControlName="premiered(JP)" />
+          <input
+            class="form-control mt-1"
+            type="date"
+            [value]="dateInputValue(reviewAnimeForm, 'premiered(JP)')"
+            (change)="onDateChange(reviewAnimeForm, 'premiered(JP)', $any($event.target).value)"
+          />
         </div>
         <div>
           <label class="text-sm font-medium text-gray-700">วันที่ดูจบ</label>
-          <input class="form-control mt-1" type="text" formControlName="finished date" />
+          <input
+            class="form-control mt-1"
+            type="date"
+            [value]="dateInputValue(reviewAnimeForm, 'finished date')"
+            (change)="onDateChange(reviewAnimeForm, 'finished date', $any($event.target).value)"
+          />
         </div>
         <div>
           <label class="text-sm font-medium text-gray-700">ประเภทอนิเมะ</label>
@@ -231,7 +246,12 @@
         </div>
         <div>
           <label class="text-sm font-medium text-gray-700">วันที่ต่อเสร็จ</label>
-          <input class="form-control mt-1" type="text" formControlName="finishedDate" />
+          <input
+            class="form-control mt-1"
+            type="date"
+            [value]="dateInputValue(reviewPlamoForm, 'finishedDate')"
+            (change)="onDateChange(reviewPlamoForm, 'finishedDate', $any($event.target).value)"
+          />
         </div>
         <div class="sm:col-span-2">
           <label class="text-sm font-medium text-gray-700">ประเภท</label>
@@ -304,11 +324,21 @@
         </div>
         <div>
           <label class="text-sm font-medium text-gray-700">วันที่เริ่ม</label>
-          <input class="form-control mt-1" type="text" formControlName="startDate" />
+          <input
+            class="form-control mt-1"
+            type="date"
+            [value]="dateInputValue(reviewGameForm, 'startDate')"
+            (change)="onDateChange(reviewGameForm, 'startDate', $any($event.target).value)"
+          />
         </div>
         <div>
           <label class="text-sm font-medium text-gray-700">วันที่เล่นจบ</label>
-          <input class="form-control mt-1" type="text" formControlName="endDate" />
+          <input
+            class="form-control mt-1"
+            type="date"
+            [value]="dateInputValue(reviewGameForm, 'endDate')"
+            (change)="onDateChange(reviewGameForm, 'endDate', $any($event.target).value)"
+          />
         </div>
         <div class="sm:col-span-2">
           <label class="text-sm font-medium text-gray-700">ประเภท</label>

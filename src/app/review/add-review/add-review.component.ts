@@ -203,6 +203,16 @@ export class AddReviewComponent {
       : [];
   }
 
+  dateInputValue(form: FormGroup, fieldName: string) {
+    return this.toDateInputValue(form.get(fieldName)?.value);
+  }
+
+  onDateChange(form: FormGroup, fieldName: string, value: string) {
+    const control = form.get(fieldName);
+    control?.setValue(this.formatDateInputValue(value));
+    control?.markAsTouched();
+  }
+
   submitLabel() {
     return this.isEditMode() ? 'Update Review' : 'Create Review';
   }
@@ -520,6 +530,40 @@ export class AddReviewComponent {
   private toNumber(value: number | string | null | undefined) {
     const parsed = Number(value);
     return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  private toDateInputValue(value: unknown) {
+    if (typeof value !== 'string' || !value.trim()) {
+      return '';
+    }
+
+    const trimmed = value.trim();
+    const dateInputMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (dateInputMatch) {
+      return trimmed;
+    }
+
+    const displayMatch = trimmed.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (!displayMatch) {
+      return '';
+    }
+
+    const [, day, month, year] = displayMatch;
+    return `${year}-${month}-${day}`;
+  }
+
+  private formatDateInputValue(value: string) {
+    if (!value) {
+      return '';
+    }
+
+    const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) {
+      return value;
+    }
+
+    const [, year, month, day] = match;
+    return `${day}/${month}/${year}`;
   }
 }
 
