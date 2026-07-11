@@ -59,6 +59,7 @@ export class AddReviewComponent {
   private readonly animeNumericFields = ['episode'] as const;
   private readonly plamoNumericFields = [] as const;
   private readonly gameNumericFields = [] as const;
+  private readonly optionalFields = ['comment'] as const;
   private readonly initialReviewBookFormValue = {
     name: '',
     type: '',
@@ -146,6 +147,7 @@ export class AddReviewComponent {
         }
 
         this.patchFormForCategory(category, editData as Record<string, unknown>);
+        this.syncCustomModesForCategory(category);
         if (!this.editFieldValue() && typeof editData['name'] === 'string') {
           this.editFieldValue.set(editData['name']);
         }
@@ -364,6 +366,43 @@ export class AddReviewComponent {
     }
   }
 
+  private syncCustomModesForCategory(category: Exclude<ReviewCategory, ''>) {
+    switch (category) {
+      case 'review-book':
+        this.syncCustomMode(
+          this.reviewBookForm,
+          'license',
+          this.bookLicenseOptions(),
+          this.isBookLicenseCustom
+        );
+        break;
+      case 'review-anime':
+        this.syncCustomMode(
+          this.reviewAnimeForm,
+          'type',
+          this.animeTypeOptions(),
+          this.isAnimeTypeCustom
+        );
+        break;
+      case 'review-game':
+        this.syncCustomMode(
+          this.reviewGameForm,
+          'platForm',
+          this.gamePlatFormOptions(),
+          this.isGamePlatFormCustom
+        );
+        break;
+      case 'review-plamo':
+        this.syncCustomMode(
+          this.reviewPlamoForm,
+          'line',
+          this.plamoLineOptions(),
+          this.isPlamoLineCustom
+        );
+        break;
+    }
+  }
+
   private findCachedReview(category: Exclude<ReviewCategory, ''>, name: string) {
     const key = name.trim();
     if (!key) {
@@ -487,14 +526,30 @@ export class AddReviewComponent {
     customSignal: ReturnType<typeof signal<boolean>>
   ) {
     const currentValue = String(form.get(fieldName)?.value ?? '').trim();
-    customSignal.set(Boolean(currentValue) && !options.includes(currentValue));
+    if (!currentValue) {
+      customSignal.set(false);
+      return;
+    }
+
+    const matchedOption = options.find((option) => option.trim() === currentValue);
+    if (matchedOption) {
+      customSignal.set(false);
+      if (form.get(fieldName)?.value !== matchedOption) {
+        form.get(fieldName)?.setValue(matchedOption, { emitEvent: false });
+      }
+      return;
+    }
+
+    customSignal.set(true);
   }
 
   private createRequiredForm<T extends ReviewInitialValues>(initialValues: T) {
     const controls = Object.entries(initialValues).reduce((acc, [key, value]) => {
       acc[key as keyof T] = new FormControl(value as T[keyof T], {
         nonNullable: true,
-        validators: [Validators.required],
+        validators: this.optionalFields.includes(key as (typeof this.optionalFields)[number])
+          ? []
+          : [Validators.required],
       });
       return acc;
     }, {} as { [K in keyof T]: FormControl<T[K]> });
