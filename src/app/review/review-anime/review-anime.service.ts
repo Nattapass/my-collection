@@ -48,6 +48,10 @@ export class ReviewAnimeService {
     );
   }
 
+  getAllReviews() {
+    return this.http.get<ReviewAnime[]>('https://service-collection.vercel.app/review-anime');
+  }
+
   updateReviewAnimeByName(name: string, payload: ReviewAnime) {
     return this.http.put<ReviewAnime>(
       `https://service-collection.vercel.app/review-anime/name/${encodeURIComponent(name)}`,

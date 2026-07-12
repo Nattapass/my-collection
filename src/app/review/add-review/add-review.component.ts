@@ -3,7 +3,8 @@ import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 import { ReviewBook, ReviewBookService } from '../review-book/review-book.service';
 import { ReviewAnime, ReviewAnimeService } from '../review-anime/review-anime.service';
@@ -298,54 +299,94 @@ export class AddReviewComponent {
       return;
     }
 
-    const request$ = isEdit
-      ? options.updateReviewByName(fieldValue, payload)
-      : options.createReview(payload);
+    const proceedWithRequest = () => {
+      const request$ = isEdit
+        ? options.updateReviewByName(fieldValue, payload)
+        : options.createReview(payload);
 
-    this.isSaving.set(true);
-    request$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (saved) => {
-          const resolved = saved ?? payload;
+      this.isSaving.set(true);
+      request$
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (saved) => {
+            const resolved = saved ?? payload;
 
-          if (isEdit) {
-            options.replaceReviewByName(fieldValue, resolved);
-            const latestName = String(resolved.name ?? fieldValue).trim();
-            this.editFieldValue.set(latestName || fieldValue);
-            this.successMessage.set('Review updated successfully.');
+            if (isEdit) {
+              options.replaceReviewByName(fieldValue, resolved);
+              const latestName = String(resolved.name ?? fieldValue).trim();
+              this.editFieldValue.set(latestName || fieldValue);
+              this.successMessage.set('Review updated successfully.');
+              Swal.fire({
+                title: 'Update Success!',
+                text: '',
+                icon: 'success',
+              });
+            } else {
+              options.prependReview(resolved);
+              options.form.reset(options.resetValue);
+              this.successMessage.set('Review created successfully.');
+              Swal.fire({
+                title: 'Create Success!',
+                text: '',
+                icon: 'success',
+              });
+            }
+
+            this.isSaving.set(false);
+          },
+          error: (error) => {
+            console.error(error);
+            this.isSaving.set(false);
+            this.errorMessage.set(
+              isEdit
+                ? 'Failed to update review. Please try again.'
+                : 'Failed to create review. Please try again.'
+            );
             Swal.fire({
-              title: 'Update Success!',
-              text: '',
-              icon: 'success',
-            });
-          } else {
-            options.prependReview(resolved);
-            options.form.reset(options.resetValue);
-            this.successMessage.set('Review created successfully.');
-            Swal.fire({
-              title: 'Create Success!',
-              text: '',
-              icon: 'success',
+              icon: 'error',
+              title: isEdit ? 'Update Failed' : 'Create Failed',
+              text: 'Please try again.',
             });
           }
+        });
+    };
 
-          this.isSaving.set(false);
+    if (isEdit) {
+      proceedWithRequest();
+      return;
+    }
+
+    const reviewName = this.normalizeReviewName(String(payload.name ?? '').trim());
+    if (!reviewName) {
+      proceedWithRequest();
+      return;
+    }
+
+    const reviewType = this.reviewCategory() === 'review-book'
+      ? this.normalizeReviewName(String((payload as { type?: string }).type ?? '').trim())
+      : '';
+
+    this.isSaving.set(true);
+    this.checkDuplicateReviewName(this.reviewCategory(), reviewName, reviewType)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (isDuplicate) => {
+          if (isDuplicate) {
+            this.isSaving.set(false);
+            this.errorMessage.set(
+              this.reviewCategory() === 'review-book'
+                ? `A book review named "${payload.name}" with the same type already exists.`
+                : `A review named "${payload.name}" already exists in this category.`
+            );
+            return;
+          }
+          proceedWithRequest();
         },
         error: (error) => {
           console.error(error);
           this.isSaving.set(false);
-          this.errorMessage.set(
-            isEdit
-              ? 'Failed to update review. Please try again.'
-              : 'Failed to create review. Please try again.'
-          );
-          Swal.fire({
-            icon: 'error',
-            title: isEdit ? 'Update Failed' : 'Create Failed',
-            text: 'Please try again.',
-          });
-        }
+          this.errorMessage.set('Unable to verify whether this review already exists. Please try again.');
+        },
       });
   }
 
@@ -421,6 +462,43 @@ export class AddReviewComponent {
       default:
         return null;
     }
+  }
+
+  private checkDuplicateReviewName(category: ReviewCategory, reviewName: string, reviewType = ''): Observable<boolean> {
+    const normalizedName = this.normalizeReviewName(reviewName);
+    const normalizedType = this.normalizeReviewName(reviewType);
+    if (!normalizedName || !category) {
+      return of(false);
+    }
+
+    switch (category) {
+      case 'review-book':
+        return this.reviewBookService.getAllReviews().pipe(
+          map((reviews) => reviews.some((item) => {
+            const sameName = this.normalizeReviewName(item.name) === normalizedName;
+            const sameType = !normalizedType || this.normalizeReviewName(item.type) === normalizedType;
+            return sameName && sameType;
+          }))
+        );
+      case 'review-anime':
+        return this.reviewAnimeService.getAllReviews().pipe(
+          map((reviews) => reviews.some((item) => this.normalizeReviewName(item.name) === normalizedName))
+        );
+      case 'review-plamo':
+        return this.reviewPlamoService.getAllReviews().pipe(
+          map((reviews) => reviews.some((item) => this.normalizeReviewName(item.name) === normalizedName))
+        );
+      case 'review-game':
+        return this.reviewGameService.getAllReviews().pipe(
+          map((reviews) => reviews.some((item) => this.normalizeReviewName(item.name) === normalizedName))
+        );
+      default:
+        return of(false);
+    }
+  }
+
+  private normalizeReviewName(value: string) {
+    return value.trim().toLowerCase();
   }
 
   private loadOptionsForCategory(category: ReviewCategory) {

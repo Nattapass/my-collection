@@ -47,6 +47,10 @@ export class ReviewGameService {
     );
   }
 
+  getAllReviews() {
+    return this.http.get<ReviewGame[]>('https://service-collection.vercel.app/review-game');
+  }
+
   updateReviewGameByName(name: string, payload: ReviewGame) {
     return this.http.put<ReviewGame>(
       `https://service-collection.vercel.app/review-game/name/${encodeURIComponent(name)}`,

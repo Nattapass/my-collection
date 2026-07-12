@@ -47,6 +47,10 @@ export class ReviewBookService {
     );
   }
 
+  getAllReviews() {
+    return this.http.get<ReviewBook[]>('https://service-collection.vercel.app/review-books');
+  }
+
   updateReviewBookByName(name: string, payload: ReviewBook) {
     return this.http.put<ReviewBook>(
       `https://service-collection.vercel.app/review-books/name/${encodeURIComponent(name)}`,

@@ -45,6 +45,10 @@ export class ReviewPlamoService {
     );
   }
 
+  getAllReviews() {
+    return this.http.get<ReviewPlamo[]>('https://service-collection.vercel.app/review-plamo');
+  }
+
   updateReviewPlamoByName(name: string, payload: ReviewPlamo) {
     return this.http.put<ReviewPlamo>(
       `https://service-collection.vercel.app/review-plamo/name/${encodeURIComponent(name)}`,
