@@ -73,6 +73,10 @@ export class ReviewBookComponent {
     this.page = 1;
   }
 
+  goToFullReview(item: ReviewBook) {
+    this.router.navigate(['/full-review', 'book', encodeURIComponent(item.name)]);
+  }
+
   goToEdit(item: ReviewBook) {
     this.router.navigate(['/review/add-review'], {
       queryParams: {

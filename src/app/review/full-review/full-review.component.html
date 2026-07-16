@@ -1,0 +1,107 @@
+@if (item()) {
+  <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+    <div class="grid gap-6 lg:grid-cols-[260px_1fr]">
+      <div class="flex flex-col gap-4">
+        <img [src]="item()?.image" [alt]="item()?.name" class="h-[360px] w-full rounded-xl object-cover shadow-sm" />
+      </div>
+
+      <div class="space-y-5">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="text-sm font-medium text-gray-500">{{ categoryLabel() }} Review</p>
+            <h2 class="mt-1 text-3xl font-bold text-gray-900">{{ item()?.name }}</h2>
+          </div>
+          <div class="rounded-full bg-gray-900 px-3 py-1 text-sm font-semibold text-white">
+            {{ categoryLabel() }}
+          </div>
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          @if (animeItem()) {
+            <div class="rounded-xl bg-gray-50 p-4">
+              <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">วันฉาย</div>
+              <div class="mt-1 text-base font-semibold text-gray-900">{{ animeItem()?.['premiered(JP)'] }}</div>
+            </div>
+            <div class="rounded-xl bg-gray-50 p-4">
+              <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">จำนวนตอน</div>
+              <div class="mt-1 text-base font-semibold text-gray-900">{{ animeItem()?.episode }}</div>
+            </div>
+            <div class="rounded-xl bg-gray-50 p-4">
+              <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">ประเภทอนิเมะ</div>
+              <div class="mt-1 text-base font-semibold text-gray-900">{{ animeItem()?.type }}</div>
+            </div>
+          }
+
+          @if (bookItem()) {
+            <div class="rounded-xl bg-gray-50 p-4">
+              <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">วันที่อ่านจบ</div>
+              <div class="mt-1 text-base font-semibold text-gray-900">{{ bookItem()?.finishedDate }}</div>
+            </div>
+            <div class="rounded-xl bg-gray-50 p-4">
+              <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">จำนวนตอน/เล่ม</div>
+              <div class="mt-1 text-base font-semibold text-gray-900">{{ bookItem()?.total }}</div>
+            </div>
+            <div class="rounded-xl bg-gray-50 p-4">
+              <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">ประเภท</div>
+              <div class="mt-1 text-base font-semibold text-gray-900">{{ bookItem()?.type }}</div>
+            </div>
+          }
+
+          @if (gameItem()) {
+            <div class="rounded-xl bg-gray-50 p-4">
+              <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">วันเริ่ม</div>
+              <div class="mt-1 text-base font-semibold text-gray-900">{{ gameItem()?.startDate }}</div>
+            </div>
+            <div class="rounded-xl bg-gray-50 p-4">
+              <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">วันจบ</div>
+              <div class="mt-1 text-base font-semibold text-gray-900">{{ gameItem()?.endDate }}</div>
+            </div>
+            <div class="rounded-xl bg-gray-50 p-4">
+              <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Platform</div>
+              <div class="mt-1 text-base font-semibold text-gray-900">{{ gameItem()?.platForm }}</div>
+            </div>
+          }
+
+          @if (plamoItem()) {
+            <div class="rounded-xl bg-gray-50 p-4">
+              <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">วันที่เสร็จ</div>
+              <div class="mt-1 text-base font-semibold text-gray-900">{{ plamoItem()?.finishedDate }}</div>
+            </div>
+            <div class="rounded-xl bg-gray-50 p-4">
+              <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Line</div>
+              <div class="mt-1 text-base font-semibold text-gray-900">{{ plamoItem()?.line }}</div>
+            </div>
+            <div class="rounded-xl bg-gray-50 p-4">
+              <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">คะแนนรวม</div>
+              <div class="mt-1 text-base font-semibold text-gray-900">{{ plamoItem()?.score }}</div>
+            </div>
+          }
+        </div>
+
+        <div class="rounded-xl bg-gray-50 p-4">
+          <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">ประเภท</div>
+          <div class="mt-2 flex flex-wrap gap-2">
+            @for (genre of genresOf(item()!); track genre) {
+              <span class="rounded-full bg-white px-3 py-1 text-sm font-medium text-gray-700 ring-1 ring-gray-200">{{ genre }}</span>
+            }
+          </div>
+        </div>
+
+        <div class="rounded-xl bg-gray-50 p-4">
+          <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">ความคิดเห็น</div>
+          <div class="mt-2 whitespace-pre-line text-base leading-7 text-gray-800">{{ item()?.comment }}</div>
+        </div>
+
+        <div class="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center shadow-sm">
+          <div class="text-sm font-semibold uppercase tracking-[0.2em] text-amber-700">สรุป Tier</div>
+          <div class="mt-3 text-5xl font-black text-amber-900">{{ item()?.tier }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+} @else {
+  <div class="rounded-2xl border border-gray-200 bg-white p-8 text-center text-gray-600 shadow-sm">
+    <p class="text-lg font-semibold text-gray-900">ไม่พบข้อมูล review ที่เลือก</p>
+    <p class="mt-2 text-sm">กรุณาตรวจสอบ route หรือกลับไปหน้า review</p>
+  </div>
+}

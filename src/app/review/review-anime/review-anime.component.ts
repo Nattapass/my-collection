@@ -69,6 +69,10 @@ export class ReviewAnimeComponent {
     this.page = 1;
   }
 
+  goToFullReview(item: ReviewAnime) {
+    this.router.navigate(['/full-review', 'anime', encodeURIComponent(item.name)]);
+  }
+
   goToEdit(item: ReviewAnime) {
     this.router.navigate(['/review/add-review'], {
       queryParams: {

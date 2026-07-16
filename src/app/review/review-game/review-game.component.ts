@@ -58,6 +58,10 @@ export class ReviewGameComponent {
     this.page = 1;
   }
 
+  goToFullReview(item: ReviewGame) {
+    this.router.navigate(['/full-review', 'game', encodeURIComponent(item.name)]);
+  }
+
   goToEdit(item: ReviewGame) {
     this.router.navigate(['/review/add-review'], {
       queryParams: {

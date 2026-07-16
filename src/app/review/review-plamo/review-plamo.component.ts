@@ -56,6 +56,10 @@ export class ReviewPlamoComponent {
     this.page = 1;
   }
 
+  goToFullReview(item: ReviewPlamo) {
+    this.router.navigate(['/full-review', 'plamo', encodeURIComponent(item.name)]);
+  }
+
   goToEdit(item: ReviewPlamo) {
     this.router.navigate(['/review/add-review'], {
       queryParams: {

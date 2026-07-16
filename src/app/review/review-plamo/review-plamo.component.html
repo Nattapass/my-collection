@@ -53,9 +53,14 @@
               <td class="px-3 py-2">{{ item.finishedDate }}</td>
               <td class="px-3 py-2 whitespace-pre-line min-w-[350px]">{{ item.comment }}</td>
               <td class="p-1 text-center" style="width: 25px; min-width: 25px; max-width: 25px;">
-                <button type="button" class="inline-flex h-5 w-5 items-center justify-center rounded text-gray-600 hover:bg-gray-100 hover:text-gray-900" aria-label="Edit review" (click)="goToEdit(item)">
-                  <svg viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4" aria-hidden="true"><path d="M13.586 3.586a2 2 0 112.828 2.828l-8.9 8.9a1 1 0 01-.418.252l-3 1a1 1 0 01-1.264-1.264l1-3a1 1 0 01.252-.418l8.9-8.9zM12.172 5L5 12.172V14h1.828L14 6.828 12.172 5z" /></svg>
-                </button>
+                <div class="flex items-center justify-center gap-1">
+                  <button type="button" class="inline-flex h-5 w-5 items-center justify-center rounded text-gray-600 hover:bg-gray-100 hover:text-gray-900" aria-label="View full review" (click)="goToFullReview(item)">
+                    <svg viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4" aria-hidden="true"><path d="M10 3.5c4.2 0 7.7 2.4 9.4 6.5-1.7 4.1-5.2 6.5-9.4 6.5S2.3 14.1.6 10C2.3 5.9 5.8 3.5 10 3.5zm0 2c-3.1 0-5.8 1.8-7.2 4.5 1.4 2.7 4.1 4.5 7.2 4.5s5.8-1.8 7.2-4.5C15.8 7.3 13.1 5.5 10 5.5zm0 2a2.5 2.5 0 110 5 2.5 2.5 0 010-5z" /></svg>
+                  </button>
+                  <button type="button" class="inline-flex h-5 w-5 items-center justify-center rounded text-gray-600 hover:bg-gray-100 hover:text-gray-900" aria-label="Edit review" (click)="goToEdit(item)">
+                    <svg viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4" aria-hidden="true"><path d="M13.586 3.586a2 2 0 112.828 2.828l-8.9 8.9a1 1 0 01-.418.252l-3 1a1 1 0 01-1.264-1.264l1-3a1 1 0 01.252-.418l8.9-8.9zM12.172 5L5 12.172V14h1.828L14 6.828 12.172 5z" /></svg>
+                  </button>
+                </div>
               </td>
             </tr>
           }
