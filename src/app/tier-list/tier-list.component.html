@@ -2,7 +2,7 @@
   <div class="d-flex justify-between align-items-center gap-3">
     <div>
       <h2 class="text-xl font-semibold text-gray-900">Tier List</h2>
-      <p class="mt-1 text-sm text-gray-500">Review items grouped by genre and tier.</p>
+      <p class="mt-1 text-sm text-gray-500">All reviewed items first, followed by tier lists grouped by genre.</p>
     </div>
   </div>
 
@@ -29,66 +29,106 @@
           }
         </div>
       </div>
-    } @else if (genres().length === 0) {
+    } @else if (selectedItems().length === 0) {
       <div class="rounded-md border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500">
-        No genre with at least 5 reviewed items found for {{ selectedTitle() }}.
+        No reviewed items found for {{ selectedTitle() }}.
       </div>
     } @else {
       <div class="space-y-6">
-        @for (genre of genres(); track genre) {
-          <section class="rounded-md border border-gray-200">
-            <button
-              type="button"
-              class="tier-template-header"
-              [attr.aria-expanded]="!isCollapsed(genre)"
-              (click)="toggleTemplate(genre)"
-            >
-              <span class="text-base font-semibold text-gray-900">
-                {{ selectedTitle() }}: {{ genre }}
-                <span class="text-sm font-medium text-gray-500">({{ genreCount(genre) }})</span>
-              </span>
-              <span class="tier-template-toggle">{{ isCollapsed(genre) ? 'Show' : 'Hide' }}</span>
-            </button>
-            @if (!isCollapsed(genre)) {
-              @for (tier of tiers; track tier) {
-                <div class="tier-list-row">
-                  <div class="tier-list-label" [ngClass]="tierClass(tier)">{{ tier }}</div>
-                  <div class="tier-list-items">
-                    @for (item of itemsFor(genre, tier); track item.name) {
-                      <div class="tier-list-item group relative w-20">
-                        <div class="tier-list-poster h-28 w-20 overflow-hidden rounded border border-gray-200 bg-gray-100 shadow-sm">
-                          <img [src]="item.image" [alt]="item.name" class="h-full w-full object-cover" />
-                        </div>
-                        <p class="mt-1 line-clamp-2 text-xs font-medium text-gray-700" [title]="item.name">{{ item.name }}</p>
-                        <div class="tier-hover-card">
-                          <div class="h-32 w-24 overflow-hidden rounded border border-gray-200 bg-gray-100">
-                            <img [src]="item.image" [alt]="item.name" class="h-full w-full object-cover" />
-                          </div>
-                          <div class="min-w-0 flex-1">
-                            <p class="text-sm font-semibold text-gray-900">{{ item.name }}</p>
-                            <div class="mt-2 space-y-1">
-                              @for (detail of itemDetails(item); track detail.label) {
-                                <p class="text-xs text-gray-600">
-                                  <span class="font-semibold text-gray-800">{{ detail.label }}:</span>
-                                  {{ detail.value }}
-                                </p>
-                              }
-                            </div>
-                            <div class="mt-2 flex flex-wrap gap-1">
-                              @for (itemGenre of genresOf(item); track itemGenre) {
-                                <span class="review-genre-chip genre-chip-0">{{ itemGenre }}</span>
-                              }
-                            </div>
-                        </div>
+      <section class="space-y-4 rounded-md border border-gray-200 bg-gray-50 p-4">
+        <div class="text-base font-semibold text-gray-900">รวมทุกเรื่องใน {{ selectedTitle() }}</div>
+        @for (tier of tiers; track tier) {
+          <div class="tier-list-row">
+            <div class="tier-list-label" [ngClass]="tierClass(tier)">{{ tier }}</div>
+            <div class="tier-list-items">
+              @for (item of itemsForTier(tier); track item.name) {
+                <div class="tier-list-item group relative w-20">
+                  <div class="tier-list-poster h-28 w-20 overflow-hidden rounded border border-gray-200 bg-gray-100 shadow-sm">
+                    <img [src]="item.image" [alt]="item.name" class="h-full w-full object-cover" />
+                  </div>
+                  <p class="mt-1 line-clamp-2 text-xs font-medium text-gray-700" [title]="item.name">{{ item.name }}</p>
+                  <div class="tier-hover-card">
+                    <div class="h-32 w-24 overflow-hidden rounded border border-gray-200 bg-gray-100">
+                      <img [src]="item.image" [alt]="item.name" class="h-full w-full object-cover" />
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <p class="text-sm font-semibold text-gray-900">{{ item.name }}</p>
+                      <div class="mt-2 space-y-1">
+                        @for (detail of itemDetails(item); track detail.label) {
+                          <p class="text-xs text-gray-600">
+                            <span class="font-semibold text-gray-800">{{ detail.label }}:</span>
+                            {{ detail.value }}
+                          </p>
+                        }
                       </div>
+                      <div class="mt-2 flex flex-wrap gap-1">
+                        @for (itemGenre of genresOf(item); track itemGenre) {
+                          <span class="review-genre-chip genre-chip-0">{{ itemGenre }}</span>
+                        }
                       </div>
-                    }
+                    </div>
                   </div>
                 </div>
               }
-            }
-          </section>
+            </div>
+          </div>
         }
+      </section>
+
+      @for (genre of genres(); track genre) {
+        <section class="rounded-md border border-gray-200">
+          <button
+            type="button"
+            class="tier-template-header"
+            [attr.aria-expanded]="!isCollapsed(genre)"
+            (click)="toggleTemplate(genre)"
+          >
+            <span class="text-base font-semibold text-gray-900">
+              {{ selectedTitle() }}: {{ genre }}
+              <span class="text-sm font-medium text-gray-500">({{ genreCount(genre) }})</span>
+            </span>
+            <span class="tier-template-toggle">{{ isCollapsed(genre) ? 'Show' : 'Hide' }}</span>
+          </button>
+          @if (!isCollapsed(genre)) {
+            @for (tier of tiers; track tier) {
+              <div class="tier-list-row">
+                <div class="tier-list-label" [ngClass]="tierClass(tier)">{{ tier }}</div>
+                <div class="tier-list-items">
+                  @for (item of itemsFor(genre, tier); track item.name) {
+                    <div class="tier-list-item group relative w-20">
+                      <div class="tier-list-poster h-28 w-20 overflow-hidden rounded border border-gray-200 bg-gray-100 shadow-sm">
+                        <img [src]="item.image" [alt]="item.name" class="h-full w-full object-cover" />
+                      </div>
+                      <p class="mt-1 line-clamp-2 text-xs font-medium text-gray-700" [title]="item.name">{{ item.name }}</p>
+                      <div class="tier-hover-card">
+                        <div class="h-32 w-24 overflow-hidden rounded border border-gray-200 bg-gray-100">
+                          <img [src]="item.image" [alt]="item.name" class="h-full w-full object-cover" />
+                        </div>
+                        <div class="min-w-0 flex-1">
+                          <p class="text-sm font-semibold text-gray-900">{{ item.name }}</p>
+                          <div class="mt-2 space-y-1">
+                            @for (detail of itemDetails(item); track detail.label) {
+                              <p class="text-xs text-gray-600">
+                                <span class="font-semibold text-gray-800">{{ detail.label }}:</span>
+                                {{ detail.value }}
+                              </p>
+                            }
+                          </div>
+                          <div class="mt-2 flex flex-wrap gap-1">
+                            @for (itemGenre of genresOf(item); track itemGenre) {
+                              <span class="review-genre-chip genre-chip-0">{{ itemGenre }}</span>
+                            }
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          }
+        </section>
+      }
       </div>
     }
   </div>

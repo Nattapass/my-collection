@@ -105,6 +105,10 @@ export class TierListComponent implements OnInit {
     this.selectedCategory.set(category);
   }
 
+  itemsForTier(tier: TierValue) {
+    return this.selectedItems().filter((item) => String(item.tier ?? '').toUpperCase() === tier);
+  }
+
   toggleTemplate(genre: string) {
     const key = this.templateKey(genre);
     this.collapsedTemplates.update((current) => {
@@ -123,12 +127,7 @@ export class TierListComponent implements OnInit {
   }
 
   itemsFor(genre: string, tier: TierValue) {
-    return this.selectedItems().filter((item) => {
-      return (
-        String(item.tier ?? '').toUpperCase() === tier &&
-        this.genresOf(item).some((itemGenre) => itemGenre === genre)
-      );
-    });
+    return this.itemsForTier(tier).filter((item) => this.genresOf(item).includes(genre));
   }
 
   genreCount(genre: string) {
@@ -178,4 +177,5 @@ export class TierListComponent implements OnInit {
   private templateKey(genre: string) {
     return `${this.selectedCategory()}::${genre}`;
   }
+
 }
