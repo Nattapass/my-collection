@@ -48,6 +48,10 @@ export class AddReviewComponent {
   readonly isAnimeTypeCustom = signal(false);
   readonly isGamePlatFormCustom = signal(false);
   readonly isPlamoLineCustom = signal(false);
+  readonly selectedBookLicense = signal('');
+  readonly selectedAnimeType = signal('');
+  readonly selectedGamePlatForm = signal('');
+  readonly selectedPlamoLine = signal('');
   private readonly editFieldName = signal('name');
   private readonly editFieldValue = signal('');
   private readonly categoryMap: Record<string, Exclude<ReviewCategory, ''>> = {
@@ -165,19 +169,43 @@ export class AddReviewComponent {
   }
 
   onBookLicenseOptionChange(value: string) {
-    this.setOptionValue(this.reviewBookForm, 'license', value, this.isBookLicenseCustom);
+    this.setOptionValue(
+      this.reviewBookForm,
+      'license',
+      value,
+      this.isBookLicenseCustom,
+      this.selectedBookLicense
+    );
   }
 
   onAnimeTypeOptionChange(value: string) {
-    this.setOptionValue(this.reviewAnimeForm, 'type', value, this.isAnimeTypeCustom);
+    this.setOptionValue(
+      this.reviewAnimeForm,
+      'type',
+      value,
+      this.isAnimeTypeCustom,
+      this.selectedAnimeType
+    );
   }
 
   onGamePlatFormOptionChange(value: string) {
-    this.setOptionValue(this.reviewGameForm, 'platForm', value, this.isGamePlatFormCustom);
+    this.setOptionValue(
+      this.reviewGameForm,
+      'platForm',
+      value,
+      this.isGamePlatFormCustom,
+      this.selectedGamePlatForm
+    );
   }
 
   onPlamoLineOptionChange(value: string) {
-    this.setOptionValue(this.reviewPlamoForm, 'line', value, this.isPlamoLineCustom);
+    this.setOptionValue(
+      this.reviewPlamoForm,
+      'line',
+      value,
+      this.isPlamoLineCustom,
+      this.selectedPlamoLine
+    );
   }
 
   addGenre(form: FormGroup, value: string) {
@@ -324,6 +352,7 @@ export class AddReviewComponent {
             } else {
               options.prependReview(resolved);
               options.form.reset(options.resetValue);
+              this.syncCustomModesForCategory(this.reviewCategory() as Exclude<ReviewCategory, ''>);
               this.successMessage.set('Review created successfully.');
               Swal.fire({
                 title: 'Create Success!',
@@ -414,7 +443,8 @@ export class AddReviewComponent {
           this.reviewBookForm,
           'license',
           this.bookLicenseOptions(),
-          this.isBookLicenseCustom
+          this.isBookLicenseCustom,
+          this.selectedBookLicense
         );
         break;
       case 'review-anime':
@@ -422,7 +452,8 @@ export class AddReviewComponent {
           this.reviewAnimeForm,
           'type',
           this.animeTypeOptions(),
-          this.isAnimeTypeCustom
+          this.isAnimeTypeCustom,
+          this.selectedAnimeType
         );
         break;
       case 'review-game':
@@ -430,7 +461,8 @@ export class AddReviewComponent {
           this.reviewGameForm,
           'platForm',
           this.gamePlatFormOptions(),
-          this.isGamePlatFormCustom
+          this.isGamePlatFormCustom,
+          this.selectedGamePlatForm
         );
         break;
       case 'review-plamo':
@@ -438,7 +470,8 @@ export class AddReviewComponent {
           this.reviewPlamoForm,
           'line',
           this.plamoLineOptions(),
-          this.isPlamoLineCustom
+          this.isPlamoLineCustom,
+          this.selectedPlamoLine
         );
         break;
     }
@@ -518,7 +551,13 @@ export class AddReviewComponent {
             next: (licenses) => {
               const options = licenses ?? [];
               this.bookLicenseOptions.set(options);
-              this.syncCustomMode(this.reviewBookForm, 'license', options, this.isBookLicenseCustom);
+              this.syncCustomMode(
+                this.reviewBookForm,
+                'license',
+                options,
+                this.isBookLicenseCustom,
+                this.selectedBookLicense
+              );
             },
             error: (error) => console.error(error),
           });
@@ -538,7 +577,13 @@ export class AddReviewComponent {
             next: (types) => {
               const options = types ?? [];
               this.animeTypeOptions.set(options);
-              this.syncCustomMode(this.reviewAnimeForm, 'type', options, this.isAnimeTypeCustom);
+              this.syncCustomMode(
+                this.reviewAnimeForm,
+                'type',
+                options,
+                this.isAnimeTypeCustom,
+                this.selectedAnimeType
+              );
             },
             error: (error) => console.error(error),
           });
@@ -558,7 +603,13 @@ export class AddReviewComponent {
             next: (platForms) => {
               const options = platForms ?? [];
               this.gamePlatFormOptions.set(options);
-              this.syncCustomMode(this.reviewGameForm, 'platForm', options, this.isGamePlatFormCustom);
+              this.syncCustomMode(
+                this.reviewGameForm,
+                'platForm',
+                options,
+                this.isGamePlatFormCustom,
+                this.selectedGamePlatForm
+              );
             },
             error: (error) => console.error(error),
           });
@@ -578,7 +629,13 @@ export class AddReviewComponent {
             next: (lines) => {
               const options = lines ?? [];
               this.plamoLineOptions.set(options);
-              this.syncCustomMode(this.reviewPlamoForm, 'line', options, this.isPlamoLineCustom);
+              this.syncCustomMode(
+                this.reviewPlamoForm,
+                'line',
+                options,
+                this.isPlamoLineCustom,
+                this.selectedPlamoLine
+              );
             },
             error: (error) => console.error(error),
           });
@@ -590,9 +647,11 @@ export class AddReviewComponent {
     form: FormGroup,
     fieldName: string,
     value: string,
-    customSignal: ReturnType<typeof signal<boolean>>
+    customSignal: ReturnType<typeof signal<boolean>>,
+    selectedValue: ReturnType<typeof signal<string>>
   ) {
     const isCustom = value === '__custom';
+    selectedValue.set(value);
     customSignal.set(isCustom);
     form.get(fieldName)?.setValue(isCustom ? '' : value);
   }
@@ -601,17 +660,20 @@ export class AddReviewComponent {
     form: FormGroup,
     fieldName: string,
     options: string[],
-    customSignal: ReturnType<typeof signal<boolean>>
+    customSignal: ReturnType<typeof signal<boolean>>,
+    selectedValue: ReturnType<typeof signal<string>>
   ) {
     const currentValue = String(form.get(fieldName)?.value ?? '').trim();
     if (!currentValue) {
       customSignal.set(false);
+      selectedValue.set('');
       return;
     }
 
     const matchedOption = options.find((option) => option.trim() === currentValue);
     if (matchedOption) {
       customSignal.set(false);
+      selectedValue.set(matchedOption);
       if (form.get(fieldName)?.value !== matchedOption) {
         form.get(fieldName)?.setValue(matchedOption, { emitEvent: false });
       }
@@ -619,6 +681,7 @@ export class AddReviewComponent {
     }
 
     customSignal.set(true);
+    selectedValue.set('__custom');
   }
 
   private createRequiredForm<T extends ReviewInitialValues>(initialValues: T) {
@@ -699,4 +762,3 @@ export class AddReviewComponent {
     return `${day}/${month}/${year}`;
   }
 }
-
