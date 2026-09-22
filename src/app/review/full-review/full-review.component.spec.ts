@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing';
+import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
@@ -43,4 +43,19 @@ describe('FullReviewComponent', () => {
     expect(fixture.componentInstance.loading()).toBeFalse();
     expect(fixture.componentInstance.item()).toBeNull();
   });
+  it('resolves stored image keys and renews URLs before they expire', fakeAsync(() => {
+    const fixture = TestBed.createComponent(FullReviewComponent);
+    const gallery = [{key:'reviews/photo.webp',caption:'Photo'}];
+    http.expectOne('https://service-collection.vercel.app/review-anime').flush([{name:'100% story',genres:[],gallery}]);
+    fixture.detectChanges();
+    tick(0);
+    const read = http.expectOne('https://service-collection.vercel.app/media/read-urls');
+    expect(read.request.body.photos).toEqual(gallery);
+    read.flush({expiresAt:Date.now()+3600000,photos:[{...gallery[0],url:'https://example.com/first'}]});
+    expect(fixture.componentInstance.photos()[0].url).toBe('https://example.com/first');
+    tick(50*60000);
+    http.expectOne('https://service-collection.vercel.app/media/read-urls').flush({expiresAt:Date.now()+3600000,photos:[{...gallery[0],url:'https://example.com/renewed'}]});
+    expect(fixture.componentInstance.photos()[0].url).toBe('https://example.com/renewed');
+    fixture.destroy();
+  }));
 });

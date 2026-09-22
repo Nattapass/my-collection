@@ -13,7 +13,7 @@
       class="form-select mt-1"
       [value]="reviewCategory()"
       (change)="onCategoryChange($any($event.target).value)"
-      [disabled]="isEditMode()"
+      [disabled]="isEditMode() || isSaving()"
     >
       <option value="">Select review type</option>
       <option value="review-book">Review Book</option>
@@ -40,6 +40,7 @@
 
   @if (reviewCategory() === 'review-book') {
     <form class="mt-6" [formGroup]="reviewBookForm" (ngSubmit)="submitReviewBook()">
+      <fieldset [disabled]="isSaving()" class="min-w-0">
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <label class="text-sm font-medium text-gray-700">ชื่อ</label>
@@ -123,21 +124,23 @@
         </div>
       </div>
 
-      <app-review-photo-picker />
+      <app-review-photo-picker [existing]="existingGallery()" [locked]="isSaving()" />
       <div class="save-bar mt-4 d-flex justify-between align-items-center gap-3">
         <div>
           @if (errorMessage()) { <p class="text-sm text-red-600">{{ errorMessage() }}</p> }
           @if (successMessage()) { <p class="text-sm text-green-600">{{ successMessage() }}</p> }
         </div>
-        <button type="submit" class="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500" [disabled]="isSaving() || reviewBookForm.invalid">
+        <button type="submit" class="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500" [disabled]="isSaving() || photoPicker()?.busy() || reviewBookForm.invalid">
           {{ isSaving() ? savingLabel() : submitLabel() }}
         </button>
       </div>
+    </fieldset>
     </form>
   }
 
   @if (reviewCategory() === 'review-anime') {
     <form class="mt-6" [formGroup]="reviewAnimeForm" (ngSubmit)="submitReviewAnime()">
+      <fieldset [disabled]="isSaving()" class="min-w-0">
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <label class="text-sm font-medium text-gray-700">ชื่อ</label>
@@ -221,21 +224,23 @@
         </div>
       </div>
 
-      <app-review-photo-picker />
+      <app-review-photo-picker [existing]="existingGallery()" [locked]="isSaving()" />
       <div class="save-bar mt-4 d-flex justify-between align-items-center gap-3">
         <div>
           @if (errorMessage()) { <p class="text-sm text-red-600">{{ errorMessage() }}</p> }
           @if (successMessage()) { <p class="text-sm text-green-600">{{ successMessage() }}</p> }
         </div>
-        <button type="submit" class="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500" [disabled]="isSaving() || reviewAnimeForm.invalid">
+        <button type="submit" class="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500" [disabled]="isSaving() || photoPicker()?.busy() || reviewAnimeForm.invalid">
           {{ isSaving() ? savingLabel() : submitLabel() }}
         </button>
       </div>
+    </fieldset>
     </form>
   }
 
   @if (reviewCategory() === 'review-plamo') {
     <form class="mt-6" [formGroup]="reviewPlamoForm" (ngSubmit)="submitReviewPlamo()">
+      <fieldset [disabled]="isSaving()" class="min-w-0">
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div class="sm:col-span-2">
           <label class="text-sm font-medium text-gray-700">URL รูปหน้าปก</label>
@@ -303,21 +308,23 @@
         </div>
       </div>
 
-      <app-review-photo-picker />
+      <app-review-photo-picker [existing]="existingGallery()" [locked]="isSaving()" />
       <div class="save-bar mt-4 d-flex justify-between align-items-center gap-3">
         <div>
           @if (errorMessage()) { <p class="text-sm text-red-600">{{ errorMessage() }}</p> }
           @if (successMessage()) { <p class="text-sm text-green-600">{{ successMessage() }}</p> }
         </div>
-        <button type="submit" class="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500" [disabled]="isSaving() || reviewPlamoForm.invalid">
+        <button type="submit" class="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500" [disabled]="isSaving() || photoPicker()?.busy() || reviewPlamoForm.invalid">
           {{ isSaving() ? savingLabel() : submitLabel() }}
         </button>
       </div>
+    </fieldset>
     </form>
   }
 
   @if (reviewCategory() === 'review-game') {
     <form class="mt-6" [formGroup]="reviewGameForm" (ngSubmit)="submitReviewGame()">
+      <fieldset [disabled]="isSaving()" class="min-w-0">
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div class="sm:col-span-2">
           <label class="text-sm font-medium text-gray-700">URL รูปหน้าปก</label>
@@ -397,16 +404,17 @@
         </div>
       </div>
 
-      <app-review-photo-picker />
+      <app-review-photo-picker [existing]="existingGallery()" [locked]="isSaving()" />
       <div class="save-bar mt-4 d-flex justify-between align-items-center gap-3">
         <div>
           @if (errorMessage()) { <p class="text-sm text-red-600">{{ errorMessage() }}</p> }
           @if (successMessage()) { <p class="text-sm text-green-600">{{ successMessage() }}</p> }
         </div>
-        <button type="submit" class="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500" [disabled]="isSaving() || reviewGameForm.invalid">
+        <button type="submit" class="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500" [disabled]="isSaving() || photoPicker()?.busy() || reviewGameForm.invalid">
           {{ isSaving() ? savingLabel() : submitLabel() }}
         </button>
       </div>
+    </fieldset>
     </form>
   }
 </section>

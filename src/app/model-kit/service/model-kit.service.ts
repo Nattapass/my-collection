@@ -1,3 +1,4 @@
+import { API_URL } from '../../shared/api-url';
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { IModelKit } from '../interface/manga.interface';
@@ -12,6 +13,6 @@ export class ModelKitService {
 
   getModelKitList(): Observable<IModelKit[]> {
     return this.http
-      .get<IModelKit[]>('https://service-collection.vercel.app/model-kit')
+      .get<IModelKit[]>(`${API_URL}/model-kit`)
   }
 }

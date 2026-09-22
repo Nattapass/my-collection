@@ -1,25 +1,27 @@
-﻿import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { GalleryPhoto, ReviewMediaService, UploadProgress, UploadContext } from './review-media.service';
+﻿import { Component, DestroyRef, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { ReviewGalleryComponent } from './review-gallery.component';
 
-interface LocalPhoto { url: string; name: string; original: number; size: number; }
+interface LocalPhoto { url: string; name: string; original: number; size: number; blob?: Blob; progress: UploadProgress; }
 @Component({
   selector: 'app-review-photo-picker',
   imports: [ReviewGalleryComponent],
   template: `
     <section aria-labelledby="photo-picker-title">
       <h2 id="photo-picker-title">ภาพประกอบเพิ่มเติม</h2>
-      <p class="notice">ทดลองจัดรูปได้ในหน้านี้ รูปยังไม่ถูกบันทึกพร้อมรีวิวจนกว่าจะเชื่อมระบบอัปโหลด cloud</p>
+      <p class="notice">รูปจะถูกบีบอัดก่อนอัปโหลด และบันทึกพร้อมรีวิวเมื่อกดบันทึก</p>
       <label class="drop" (dragover)="$event.preventDefault()" (drop)="drop($event)">
         <strong>{{ busy() ? 'กำลังเตรียมรูป...' : '+ เลือกรูป หรือลากมาวางที่นี่' }}</strong>
-        <span>JPEG / PNG / WebP · ไม่เกิน 10 รูป · รูปละไม่เกิน 20 MB</span>
-        <input type="file" accept="image/jpeg,image/png,image/webp" multiple [disabled]="busy()" (change)="choose($event)" />
+        <span>JPEG / PNG / WebP · ไม่เกิน 10 รูป · ต้นฉบับไม่เกิน 20 MB · หลังบีบอัดไม่เกิน 5 MB</span>
+        <input type="file" accept="image/jpeg,image/png,image/webp" multiple [disabled]="busy() || locked()" (change)="choose($event)" />
       </label>
       @if (error()) {<p role="alert">{{ error() }}</p>}
-      <div class="photos">@for (photo of photos(); track photo.url; let i = $index) {
-        <div class="photo"><img [src]="photo.url" [alt]="photo.name" /><div><strong>{{ photo.name }}</strong><small>{{ kb(photo.original) }} → {{ kb(photo.size) }} KB</small></div>
-          <button type="button" (click)="move(i,-1)" [disabled]="i === 0 || busy()" aria-label="เลื่อนรูปไปก่อนหน้า">↑</button>
-          <button type="button" (click)="move(i,1)" [disabled]="i === photos().length-1 || busy()" aria-label="เลื่อนรูปไปถัดไป">↓</button>
-          <button type="button" (click)="remove(i)" [disabled]="busy()" aria-label="ลบรูป">×</button>
+      @if (uploadStatus()) {<p role="status" aria-live="polite">{{ uploadStatus() }}</p>}
+      <div class="photos">@for (photo of photos(); track photo; let i = $index) {
+        <div class="photo"><img [src]="photo.url || undefined" [alt]="photo.name" /><div><strong>{{ photo.name }}</strong>@if (photo.blob) {<small>{{ kb(photo.original) }} → {{ kb(photo.size) }} KB</small>} @else {<small>รูปที่บันทึกแล้ว</small>}</div>
+          <button type="button" (click)="move(i,-1)" [disabled]="i === 0 || busy() || locked()" aria-label="เลื่อนรูปไปก่อนหน้า">↑</button>
+          <button type="button" (click)="move(i,1)" [disabled]="i === photos().length-1 || busy() || locked()" aria-label="เลื่อนรูปไปถัดไป">↓</button>
+          <button type="button" (click)="remove(i)" [disabled]="busy() || locked()" aria-label="ลบรูป">×</button>
         </div>
       }</div>
       @if (photos().length) {<details><summary>ดูตัวอย่างแกลเลอรี</summary><app-review-gallery [photos]="gallery()" /></details>}
@@ -32,19 +34,66 @@ interface LocalPhoto { url: string; name: string; original: number; size: number
   `]
 })
 export class ReviewPhotoPickerComponent {
+  private readonly media = inject(ReviewMediaService);
+  readonly existing = input<GalleryPhoto[]>([]);
+  readonly locked = input(false);
+  readonly uploadStatus = signal('');
+  private readonly abort = new AbortController();
   readonly photos = signal<LocalPhoto[]>([]);
   readonly gallery = computed(() => this.photos().map(photo => ({url: photo.url, caption: photo.name})));
   readonly busy = signal(false);
   readonly error = signal('');
   private destroyed = false;
   constructor() {
-    inject(DestroyRef).onDestroy(() => { this.destroyed = true; this.photos().forEach(photo => URL.revokeObjectURL(photo.url)); });
+    inject(DestroyRef).onDestroy(() => { this.destroyed = true; this.abort.abort(); this.clear(); });
+    effect(onCleanup => {
+      const existing = this.existing();
+      untracked(() => {
+      this.clear();
+      this.photos.set(existing.map(photo => ({ url: '', name: photo.caption ?? '', original: 0, size: 0, progress: {key: photo.key} })));
+      this.busy.set(true);
+      const subscription = this.media.read(existing).subscribe({
+        next: signed => {
+          this.photos.update(photos => photos.map(photo => ({ ...photo, url: signed.find(item => item.key === photo.progress.key)?.url || '' })));
+          this.busy.set(false);
+        },
+        error: () => { this.busy.set(false); this.error.set('โหลดตัวอย่างรูปเดิมไม่สำเร็จ ข้อมูลรูปเดิมยังอยู่ กรุณาเปิดหน้าแก้ไขอีกครั้ง'); }
+      });
+      onCleanup(() => subscription.unsubscribe());
+      });
+    });
   }
+  clear() {
+    this.photos().forEach(photo => { if (photo.url.startsWith('blob:')) URL.revokeObjectURL(photo.url); });
+    this.photos.set([]);
+    this.uploadStatus.set('');
+  }
+  async prepare(context?: UploadContext): Promise<GalleryPhoto[]> {
+    if (this.busy()) throw new Error('กรุณารอให้เตรียมรูปเสร็จก่อน');
+    this.busy.set(true);
+    this.error.set('');
+    try {
+      const gallery: GalleryPhoto[] = [];
+      for (const [i, photo] of this.photos().entries()) {
+        if (this.destroyed) throw new Error('Upload cancelled');
+        this.uploadStatus.set('กำลังอัปโหลดรูป ' + (i + 1) + ' / ' + this.photos().length);
+        const key = photo.progress.key ?? await this.media.upload(photo.blob!, photo.progress, this.abort.signal, context);
+        gallery.push({key, caption: photo.name.slice(0, 200)});
+      }
+      this.uploadStatus.set(gallery.length ? 'เตรียมรูปครบแล้ว กำลังบันทึกรีวิว...' : '');
+      return gallery;
+    } catch (error) {
+      this.error.set('อัปโหลดไม่สำเร็จ รูปที่เลือกยังอยู่ กดบันทึกเพื่อลองใหม่ได้');
+      this.uploadStatus.set('');
+      throw error;
+    } finally { this.busy.set(false); }
+  }
+  saved() { this.uploadStatus.set('บันทึกรูปเรียบร้อยแล้ว'); }
   kb(bytes: number) { return Math.round(bytes / 1024); }
   choose(event: Event) { const input = event.target as HTMLInputElement; void this.add(Array.from(input.files ?? [])); input.value = ''; }
   drop(event: DragEvent) { event.preventDefault(); void this.add(Array.from(event.dataTransfer?.files ?? [])); }
   async add(files: File[]) {
-    if (this.busy()) return;
+    if (this.busy() || this.locked()) return;
     this.busy.set(true); this.error.set('');
     try {
       for (const file of files) {
@@ -63,14 +112,16 @@ export class ReviewPhotoPickerComponent {
             canvas.getContext('2d')!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
             const compressed = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/webp', .83));
             const blob = compressed && compressed.size < file.size ? compressed : file;
-            if (!this.destroyed) this.photos.update(list => [...list, {url: URL.createObjectURL(blob), name: file.name, original: file.size, size: blob.size}]);
+            if (blob.size > 5 * 1024 * 1024) { this.error.set('รูปยังใหญ่เกิน 5 MB หลังบีบอัด กรุณาลดขนาดก่อน'); continue; }
+            if (!this.destroyed) this.photos.update(list => [...list, {url: URL.createObjectURL(blob), name: file.name, original: file.size, size: blob.size, blob, progress: {}}]);
           } finally { bitmap.close(); }
         } catch { this.error.set('อ่านรูปบางไฟล์ไม่ได้ กรุณาลองไฟล์อื่น'); }
       }
     } finally { this.busy.set(false); }
   }
-  remove(index: number) { URL.revokeObjectURL(this.photos()[index].url); this.photos.update(list => list.filter((_, i) => i !== index)); }
+  remove(index: number) { if (this.busy() || this.locked()) return; URL.revokeObjectURL(this.photos()[index].url); this.photos.update(list => list.filter((_, i) => i !== index)); }
   move(index: number, step: number) {
+    if (this.busy() || this.locked()) return;
     const next = index + step;
     if (next < 0 || next >= this.photos().length) return;
     this.photos.update(list => { const copy = [...list]; [copy[index],copy[next]] = [copy[next],copy[index]]; return copy; });

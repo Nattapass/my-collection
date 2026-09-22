@@ -1,9 +1,14 @@
+import { GalleryPhoto } from '../shared/review-media.service';
+import { API_URL } from '../../shared/api-url';
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 export interface ReviewPlamo {
   image: string;
   name: string;
+  _id?: string;
+  gallery?: GalleryPhoto[];
+  imageFolder?: string;
   line: string;
   genres: string[];
   tier: string;
@@ -40,31 +45,31 @@ export class ReviewPlamoService {
 
   createReviewPlamo(payload: ReviewPlamo) {
     return this.http.post<ReviewPlamo>(
-      'https://service-collection.vercel.app/review-plamo',
+      `${API_URL}/review-plamo`,
       payload
     );
   }
 
   getAllReviews() {
-    return this.http.get<ReviewPlamo[]>('https://service-collection.vercel.app/review-plamo');
+    return this.http.get<ReviewPlamo[]>(`${API_URL}/review-plamo`);
   }
 
-  updateReviewPlamoByName(name: string, payload: ReviewPlamo) {
+  updateReviewPlamoByName(name: string, payload: ReviewPlamo, id = '') {
     return this.http.put<ReviewPlamo>(
-      `https://service-collection.vercel.app/review-plamo/name/${encodeURIComponent(name)}`,
+      `${API_URL}/review-plamo/${id ? '_id' : 'name'}/${encodeURIComponent(id || name)}`,
       payload
     );
   }
 
   getLines() {
     return this.http.get<string[]>(
-      'https://service-collection.vercel.app/review-plamo/line'
+      `${API_URL}/review-plamo/line`
     );
   }
 
   getGenres() {
     return this.http.get<string[]>(
-      'https://service-collection.vercel.app/review-plamo/genres'
+      `${API_URL}/review-plamo/genres`
     );
   }
 
@@ -74,7 +79,7 @@ export class ReviewPlamoService {
 
   replaceReviewPlamoByName(name: string, item: ReviewPlamo) {
     this.reviewPlamos.update((list) => {
-      const index = list.findIndex((entry) => entry.name === name);
+      const index = list.findIndex((entry) => item._id ? entry._id === item._id : entry.name === name);
       if (index === -1) {
         return [item, ...list];
       }
@@ -93,7 +98,7 @@ export class ReviewPlamoService {
     this.loadError.set(false);
     this.isLoading.set(true);
     this.http
-      .get<ReviewPlamo[]>('https://service-collection.vercel.app/review-plamo')
+      .get<ReviewPlamo[]>(`${API_URL}/review-plamo`)
       .subscribe({
         next: (data) => {
           this.reviewPlamos.set(data ?? []);

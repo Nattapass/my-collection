@@ -1,4 +1,6 @@
-﻿import { Component, computed, inject, signal } from '@angular/core';
+import { timer, switchMap } from 'rxjs';
+import { ReviewMediaService } from '../shared/review-media.service';
+﻿import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReviewAnime, ReviewAnimeService } from '../review-anime/review-anime.service';
@@ -10,7 +12,7 @@ import { ReviewGalleryComponent, ReviewPhoto } from '../shared/review-gallery.co
 import { GenreColorDirective } from '../../shared/genre-color.directive';
 
 type Category = 'anime' | 'book' | 'game' | 'plamo';
-type Item = (ReviewAnime | ReviewBook | ReviewGame | ReviewPlamo) & { _id?: string; gallery?: ReviewPhoto[] };
+type Item = (ReviewAnime | ReviewBook | ReviewGame | ReviewPlamo) & { _id?: string;  };
 
 @Component({
   selector: 'app-full-review',
@@ -19,6 +21,10 @@ type Item = (ReviewAnime | ReviewBook | ReviewGame | ReviewPlamo) & { _id?: stri
   styleUrl: './full-review.component.scss'
 })
 export class FullReviewComponent {
+  private readonly media = inject(ReviewMediaService);
+  readonly photos = signal<ReviewPhoto[]>([]);
+  readonly photoError = signal(false);
+  readonly photoRefresh = signal(0);
   private readonly router = inject(Router);
   private readonly services = {
     anime: inject(ReviewAnimeService), book: inject(ReviewBookService),
@@ -42,10 +48,6 @@ export class FullReviewComponent {
     try { return list.find(item => item.name === decodeURIComponent(id)) ?? null; } catch { return null; }
   });
   readonly genres = computed(() => Array.isArray(this.item()?.genres) ? this.item()!.genres.filter(Boolean) : []);
-  readonly photos = computed(() => {
-    const gallery = this.item()?.gallery;
-    return Array.isArray(gallery) ? gallery.filter(photo => typeof photo?.url === 'string' && /^https?:\/\//i.test(photo.url)) : [];
-  });
   readonly metadata = computed(() => {
     const item = this.item();
     if (!item) return [];
@@ -69,6 +71,18 @@ export class FullReviewComponent {
     }
   });
   constructor() {
+    effect(onCleanup => {
+      const gallery = this.item()?.gallery ?? [];
+      const refresh = this.photoRefresh();
+      untracked(() => { this.photos.set([]); this.photoError.set(false); });
+      if (!gallery.length) return;
+      // Renew before signed URLs expire, including when the page stays open.
+      const subscription = timer(0, 50 * 60000).pipe(switchMap(tick => this.media.read(gallery, refresh > 0 || tick > 0))).subscribe({
+        next: photos => { this.photos.set(photos); this.photoError.set(false); },
+        error: () => this.photoError.set(true)
+      });
+      onCleanup(() => subscription.unsubscribe());
+    });
     inject(ActivatedRoute).paramMap.pipe(takeUntilDestroyed()).subscribe(params => {
       const type = params.get('type') ?? '';
       this.category.set(['anime','book','game','plamo'].includes(type) ? type as Category : 'anime');
@@ -77,6 +91,7 @@ export class FullReviewComponent {
       this.services[this.category()].loadOnce();
     });
   }
+  refreshPhotos() { this.photoRefresh.update(value => value + 1); }
   retry() { this.services[this.category()].refresh(); }
   edit() {
     const item = this.item();

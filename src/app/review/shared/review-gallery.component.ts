@@ -1,5 +1,5 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
-import { Component, DestroyRef, ElementRef, NgZone, PLATFORM_ID, computed, effect, inject, input, signal, viewChild } from '@angular/core';
+import { Component, DestroyRef, ElementRef, NgZone, PLATFORM_ID, computed, effect, inject, input, output, signal, viewChild } from '@angular/core';
 import { MotionService } from '../../shared/motion';
 
 export interface ReviewPhoto { url: string; caption?: string; }
@@ -10,7 +10,7 @@ export interface ReviewPhoto { url: string; caption?: string; }
     @if (photos().length) {
       <section class="gallery" aria-label="ภาพประกอบ" (mouseenter)="hovered = true" (mouseleave)="hovered = false" (focusin)="focused = true" (focusout)="focused = false">
         <button type="button" class="image-button" (click)="open()" aria-label="ขยายภาพ">
-          <img [src]="current()?.url" [alt]="current()?.caption || 'ภาพประกอบ ' + (index() + 1)" (error)="failed.set(true)" [hidden]="failed()" />
+          <img [src]="current()?.url" [alt]="current()?.caption || 'ภาพประกอบ ' + (index() + 1)" (error)="imageError()" [hidden]="failed()" />
           @if (failed()) { <span>โหลดรูปไม่สำเร็จ</span> }
         </button>
         <div class="controls">
@@ -39,6 +39,8 @@ export interface ReviewPhoto { url: string; caption?: string; }
   `]
 })
 export class ReviewGalleryComponent {
+  readonly loadFailed = output<void>();
+  imageError() { this.failed.set(true); this.loadFailed.emit(); }
   readonly photos = input<ReviewPhoto[]>([]);
   readonly index = signal(0);
   readonly paused = signal(false);

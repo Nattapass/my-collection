@@ -10,7 +10,8 @@
       </div>
     </header>
     <section class="comment-panel" aria-labelledby="comment-title"><h2 id="comment-title">ความคิดเห็น</h2><div class="comment">{{ review.comment || 'ยังไม่ได้เขียนความคิดเห็น' }}</div></section>
-    <app-review-gallery [photos]="photos()" />
+    @if (photoError()) {<p role="alert">โหลดภาพประกอบไม่สำเร็จ <button type="button" (click)="refreshPhotos()">ลองใหม่</button></p>}
+    <app-review-gallery [photos]="photos()" (loadFailed)="photoError.set(true)" />
     <footer class="verdict"><p>สรุป Tier</p><app-review-rank [tier]="review.tier" /></footer>
   } @else if (loading()) {
     <div class="status" role="status">กำลังโหลดรีวิว...</div>

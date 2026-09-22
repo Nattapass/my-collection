@@ -1,12 +1,13 @@
+import { GalleryPhoto, UploadContext } from '../shared/review-media.service';
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal, viewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ReviewPhotoPickerComponent } from '../shared/review-photo-picker.component';
 import { ReviewRankComponent } from '../shared/review-rank.component';
 import { GenreColorDirective } from '../../shared/genre-color.directive';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Observable, of } from 'rxjs';
+import { Observable, of, defer, from, switchMap } from 'rxjs';
 import { map } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 import { ReviewBook, ReviewBookService } from '../review-book/review-book.service';
@@ -25,6 +26,8 @@ type ReviewInitialValues = Record<string, string | number | string[]>;
   styleUrl: './add-review.component.scss'
 })
 export class AddReviewComponent {
+  readonly existingGallery = signal<GalleryPhoto[]>([]);
+  readonly photoPicker = viewChild(ReviewPhotoPickerComponent);
   private readonly destroyRef = inject(DestroyRef);
   readonly reviewCategory = signal<ReviewCategory>('');
   readonly mode = signal<'create' | 'edit'>('create');
@@ -55,6 +58,8 @@ export class AddReviewComponent {
   readonly selectedAnimeType = signal('');
   readonly selectedGamePlatForm = signal('');
   readonly selectedPlamoLine = signal('');
+  private readonly imageFolder = signal<string | undefined>(undefined);
+  private readonly editId = signal('');
   private readonly editFieldName = signal('name');
   private readonly editFieldValue = signal('');
   private readonly categoryMap: Record<string, Exclude<ReviewCategory, ''>> = {
@@ -140,6 +145,9 @@ export class AddReviewComponent {
         const isEdit = params.get('mode') === 'edit' && Boolean(category);
 
         if (!isEdit) {
+          this.existingGallery.set([]);
+          this.editId.set('');
+          this.imageFolder.set(undefined);
           this.mode.set('create');
           this.reviewCategory.set(category);
           this.loadOptionsForCategory(category);
@@ -163,6 +171,9 @@ export class AddReviewComponent {
           return;
         }
 
+        this.editId.set(String((editData as {_id?: string})._id ?? ''));
+        this.imageFolder.set((editData as {imageFolder?: string}).imageFolder);
+        this.existingGallery.set((editData as {gallery?: GalleryPhoto[]}).gallery ?? []);
         this.patchFormForCategory(category, editData as Record<string, unknown>);
         this.syncCustomModesForCategory(category);
         if (!this.editFieldValue() && typeof editData['name'] === 'string') {
@@ -172,10 +183,12 @@ export class AddReviewComponent {
   }
 
   onCategoryChange(value: string) {
-    if (this.isEditMode()) {
+    if (this.isEditMode() || this.isSaving()) {
       return;
     }
     const category = this.categoryMap[value] ?? '';
+    this.existingGallery.set([]);
+    this.imageFolder.set(undefined);
     this.reviewCategory.set(category);
     this.loadOptionsForCategory(category);
   }
@@ -269,7 +282,7 @@ export class AddReviewComponent {
       form: this.reviewBookForm,
       mapPayload: () => this.mapPayload<ReviewBook>(this.reviewBookForm, this.bookNumericFields),
       createReview: (payload) => this.reviewBookService.createReviewBook(payload),
-      updateReviewByName: (name, payload) => this.reviewBookService.updateReviewBookByName(name, payload),
+      updateReviewByName: (name, payload) => this.reviewBookService.updateReviewBookByName(name, payload, this.editId()),
       prependReview: (payload) => this.reviewBookService.prependReviewBook(payload),
       replaceReviewByName: (name, payload) => this.reviewBookService.replaceReviewBookByName(name, payload),
       resetValue: this.initialReviewBookFormValue,
@@ -281,7 +294,7 @@ export class AddReviewComponent {
       form: this.reviewAnimeForm,
       mapPayload: () => this.mapPayload<ReviewAnime>(this.reviewAnimeForm, this.animeNumericFields),
       createReview: (payload) => this.reviewAnimeService.createReviewAnime(payload),
-      updateReviewByName: (name, payload) => this.reviewAnimeService.updateReviewAnimeByName(name, payload),
+      updateReviewByName: (name, payload) => this.reviewAnimeService.updateReviewAnimeByName(name, payload, this.editId()),
       prependReview: (payload) => this.reviewAnimeService.prependReviewAnime(payload),
       replaceReviewByName: (name, payload) => this.reviewAnimeService.replaceReviewAnimeByName(name, payload),
       resetValue: this.initialReviewAnimeFormValue,
@@ -293,7 +306,7 @@ export class AddReviewComponent {
       form: this.reviewPlamoForm,
       mapPayload: () => this.mapPayload<ReviewPlamo>(this.reviewPlamoForm, this.plamoNumericFields),
       createReview: (payload) => this.reviewPlamoService.createReviewPlamo(payload),
-      updateReviewByName: (name, payload) => this.reviewPlamoService.updateReviewPlamoByName(name, payload),
+      updateReviewByName: (name, payload) => this.reviewPlamoService.updateReviewPlamoByName(name, payload, this.editId()),
       prependReview: (payload) => this.reviewPlamoService.prependReviewPlamo(payload),
       replaceReviewByName: (name, payload) => this.reviewPlamoService.replaceReviewPlamoByName(name, payload),
       resetValue: this.initialReviewPlamoFormValue,
@@ -305,7 +318,7 @@ export class AddReviewComponent {
       form: this.reviewGameForm,
       mapPayload: () => this.mapPayload<ReviewGame>(this.reviewGameForm, this.gameNumericFields),
       createReview: (payload) => this.reviewGameService.createReviewGame(payload),
-      updateReviewByName: (name, payload) => this.reviewGameService.updateReviewGameByName(name, payload),
+      updateReviewByName: (name, payload) => this.reviewGameService.updateReviewGameByName(name, payload, this.editId()),
       prependReview: (payload) => this.reviewGameService.prependReviewGame(payload),
       replaceReviewByName: (name, payload) => this.reviewGameService.replaceReviewGameByName(name, payload),
       resetValue: this.initialReviewGameFormValue,
@@ -321,6 +334,7 @@ export class AddReviewComponent {
     replaceReviewByName: (name: string, payload: T) => void;
     resetValue: unknown;
   }) {
+    if (this.isSaving() || this.photoPicker()?.busy()) return;
     this.errorMessage.set('');
     this.successMessage.set('');
 
@@ -340,9 +354,14 @@ export class AddReviewComponent {
     }
 
     const proceedWithRequest = () => {
-      const request$ = isEdit
-        ? options.updateReviewByName(fieldValue, payload)
-        : options.createReview(payload);
+      const context: UploadContext = { category: this.reviewCategory().replace('review-', ''), reviewName: String(payload.name ?? ''), folder: this.imageFolder() };
+      const request$ = defer(() => from((this.photoPicker()?.prepare(context) ?? Promise.resolve([]))
+        .finally(() => this.imageFolder.set(context.folder)))).pipe(
+        switchMap(gallery => {
+          const withPhotos = { ...payload, gallery, imageFolder: context.folder };
+          return isEdit ? options.updateReviewByName(fieldValue, withPhotos) : options.createReview(withPhotos);
+        })
+      );
 
       this.isSaving.set(true);
       request$
@@ -351,6 +370,7 @@ export class AddReviewComponent {
           next: (saved) => {
             const resolved = saved ?? payload;
 
+            this.photoPicker()?.saved();
             if (isEdit) {
               options.replaceReviewByName(fieldValue, resolved);
               const latestName = String(resolved.name ?? fieldValue).trim();
@@ -364,6 +384,8 @@ export class AddReviewComponent {
             } else {
               options.prependReview(resolved);
               options.form.reset(options.resetValue);
+              this.photoPicker()?.clear();
+              this.imageFolder.set(undefined);
               this.syncCustomModesForCategory(this.reviewCategory() as Exclude<ReviewCategory, ''>);
               this.successMessage.set('Review created successfully.');
               Swal.fire({
@@ -376,17 +398,14 @@ export class AddReviewComponent {
             this.isSaving.set(false);
           },
           error: (error) => {
-            console.error(error);
             this.isSaving.set(false);
-            this.errorMessage.set(
-              isEdit
-                ? 'Failed to update review. Please try again.'
-                : 'Failed to create review. Please try again.'
-            );
+            this.errorMessage.set(error?.status === 401
+              ? 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่ก่อนบันทึก'
+              : 'บันทึกไม่สำเร็จ กรุณาตรวจการเชื่อมต่อ รูปที่เลือกยังอยู่และกดบันทึกเพื่อลองใหม่ได้');
             Swal.fire({
               icon: 'error',
               title: isEdit ? 'Update Failed' : 'Create Failed',
-              text: 'Please try again.',
+              text: this.errorMessage(),
             });
           }
         });

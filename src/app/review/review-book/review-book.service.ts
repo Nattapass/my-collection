@@ -1,8 +1,13 @@
+import { GalleryPhoto } from '../shared/review-media.service';
+import { API_URL } from '../../shared/api-url';
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 export interface ReviewBook {
   name: string;
+  _id?: string;
+  gallery?: GalleryPhoto[];
+  imageFolder?: string;
   type: string;
   license: string;
   genres: string[];
@@ -42,31 +47,31 @@ export class ReviewBookService {
 
   createReviewBook(payload: ReviewBook) {
     return this.http.post<ReviewBook>(
-      'https://service-collection.vercel.app/review-books',
+      `${API_URL}/review-books`,
       payload
     );
   }
 
   getAllReviews() {
-    return this.http.get<ReviewBook[]>('https://service-collection.vercel.app/review-books');
+    return this.http.get<ReviewBook[]>(`${API_URL}/review-books`);
   }
 
-  updateReviewBookByName(name: string, payload: ReviewBook) {
+  updateReviewBookByName(name: string, payload: ReviewBook, id = '') {
     return this.http.put<ReviewBook>(
-      `https://service-collection.vercel.app/review-books/name/${encodeURIComponent(name)}`,
+      `${API_URL}/review-books/${id ? '_id' : 'name'}/${encodeURIComponent(id || name)}`,
       payload
     );
   }
 
   getLicenses() {
     return this.http.get<string[]>(
-      'https://service-collection.vercel.app/review-books/license'
+      `${API_URL}/review-books/license`
     );
   }
 
   getGenres() {
     return this.http.get<string[]>(
-      'https://service-collection.vercel.app/review-books/genres'
+      `${API_URL}/review-books/genres`
     );
   }
 
@@ -76,7 +81,7 @@ export class ReviewBookService {
 
   replaceReviewBookByName(name: string, item: ReviewBook) {
     this.reviewBooks.update((list) => {
-      const index = list.findIndex((entry) => entry.name === name);
+      const index = list.findIndex((entry) => item._id ? entry._id === item._id : entry.name === name);
       if (index === -1) {
         return [item, ...list];
       }
@@ -95,7 +100,7 @@ export class ReviewBookService {
     this.loadError.set(false);
     this.isLoading.set(true);
     this.http
-      .get<ReviewBook[]>('https://service-collection.vercel.app/review-books')
+      .get<ReviewBook[]>(`${API_URL}/review-books`)
       .subscribe({
         next: (data) => {
           this.reviewBooks.set(data ?? []);

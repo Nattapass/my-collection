@@ -1,3 +1,4 @@
+import { API_URL } from '../../shared/api-url';
 import { HttpClient } from '@angular/common/http';
 import { Injectable, signal } from '@angular/core';
 import { IManga } from '../interface/manga.interface';
@@ -15,7 +16,7 @@ export class MangaService {
 
   getMangaList(): Observable<IManga[]> {
     return this.http
-      .get<IManga[]>('https://service-collection.vercel.app/manga')
+      .get<IManga[]>(`${API_URL}/manga`)
   }
 
   loadOnce() {

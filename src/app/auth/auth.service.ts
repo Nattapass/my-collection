@@ -1,64 +1,37 @@
-import { Inject, Injectable, signal } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject, signal } from '@angular/core';
+import { tap } from 'rxjs';
+import { API_URL } from '../shared/api-url';
 
-@Injectable({
-  providedIn: 'root'
-})
+interface Session { token: string; expiresAt: number; }
+@Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly sessionKey = 'isAuthenticated';
-  private readonly fixedUsername = 'admin';
-  private readonly fixedPassword = '1234';
-  private readonly authenticated = signal(false);
+  private readonly document = inject(DOCUMENT);
+  private readonly http = inject(HttpClient);
+  private readonly sessionKey = 'collection.session';
+  private readonly session = signal<Session | null>(this.restore());
+  readonly isAuthenticatedSignal = () => this.isAuthenticated();
 
-  constructor(@Inject(DOCUMENT) private document: Document) {
-    this.authenticated.set(this.readSessionAuth());
+  login(username: string, password: string) {
+    return this.http.post<Session>(API_URL + '/auth/login', { username, password }).pipe(tap(session => {
+      this.session.set(session);
+      try { this.document.defaultView?.sessionStorage.setItem(this.sessionKey, JSON.stringify(session)); } catch { /* In-memory session still works. */ }
+    }));
   }
-
-  readonly isAuthenticatedSignal = this.authenticated.asReadonly();
-
-  login(username: string, password: string): boolean {
-    const isValid =
-      username === this.fixedUsername && password === this.fixedPassword;
-
-    if (!isValid) {
-      return false;
-    }
-
-    this.authenticated.set(true);
-    this.setSessionAuth(true);
-    return true;
+  token(): string | null {
+    const session = this.session();
+    return session && session.expiresAt > Date.now() ? session.token : null;
   }
-
-  logout(): void {
-    this.authenticated.set(false);
-    this.setSessionAuth(false);
+  isAuthenticated() { return Boolean(this.token()); }
+  logout() {
+    this.session.set(null);
+    try { this.document.defaultView?.sessionStorage.removeItem(this.sessionKey); } catch { /* Storage may be disabled. */ }
   }
-
-  isAuthenticated(): boolean {
-    return this.authenticated();
-  }
-
-  private readSessionAuth(): boolean {
+  private restore(): Session | null {
     try {
-      return this.document.defaultView?.sessionStorage?.getItem(this.sessionKey) === 'true';
-    } catch {
-      return false;
-    }
-  }
-
-  private setSessionAuth(isAuthenticated: boolean): void {
-    try {
-      const storage = this.document.defaultView?.sessionStorage;
-      if (!storage) {
-        return;
-      }
-      if (isAuthenticated) {
-        storage.setItem(this.sessionKey, 'true');
-        return;
-      }
-      storage.removeItem(this.sessionKey);
-    } catch {
-      // ignore storage write errors (SSR/private mode/disabled storage)
-    }
+      const value = JSON.parse(this.document.defaultView?.sessionStorage.getItem(this.sessionKey) ?? 'null');
+      return typeof value?.token === 'string' && Number.isFinite(value?.expiresAt) && value.expiresAt > Date.now() ? value : null;
+    } catch { return null; }
   }
 }

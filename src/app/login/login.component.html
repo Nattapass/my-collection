@@ -31,8 +31,8 @@
       </div>
     }
 
-    <button type="submit" class="w-full rounded-md bg-gray-800 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700">
-      Sign in
+    <button [disabled]="busy()" type="submit" class="w-full rounded-md bg-gray-800 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700">
+      {{ busy() ? 'Signing in...' : 'Sign in' }}
     </button>
   </form>
 </div>

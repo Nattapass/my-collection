@@ -1,9 +1,14 @@
+import { GalleryPhoto } from '../shared/review-media.service';
+import { API_URL } from '../../shared/api-url';
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 export interface ReviewGame {
   image: string;
   name: string;
+  _id?: string;
+  gallery?: GalleryPhoto[];
+  imageFolder?: string;
   platForm: string;
   genres: string[];
   tier: string;
@@ -42,31 +47,31 @@ export class ReviewGameService {
 
   createReviewGame(payload: ReviewGame) {
     return this.http.post<ReviewGame>(
-      'https://service-collection.vercel.app/review-game',
+      `${API_URL}/review-game`,
       payload
     );
   }
 
   getAllReviews() {
-    return this.http.get<ReviewGame[]>('https://service-collection.vercel.app/review-game');
+    return this.http.get<ReviewGame[]>(`${API_URL}/review-game`);
   }
 
-  updateReviewGameByName(name: string, payload: ReviewGame) {
+  updateReviewGameByName(name: string, payload: ReviewGame, id = '') {
     return this.http.put<ReviewGame>(
-      `https://service-collection.vercel.app/review-game/name/${encodeURIComponent(name)}`,
+      `${API_URL}/review-game/${id ? '_id' : 'name'}/${encodeURIComponent(id || name)}`,
       payload
     );
   }
 
   getPlatForms() {
     return this.http.get<string[]>(
-      'https://service-collection.vercel.app/review-game/platForm'
+      `${API_URL}/review-game/platForm`
     );
   }
 
   getGenres() {
     return this.http.get<string[]>(
-      'https://service-collection.vercel.app/review-game/genres'
+      `${API_URL}/review-game/genres`
     );
   }
 
@@ -76,7 +81,7 @@ export class ReviewGameService {
 
   replaceReviewGameByName(name: string, item: ReviewGame) {
     this.reviewGames.update((list) => {
-      const index = list.findIndex((entry) => entry.name === name);
+      const index = list.findIndex((entry) => item._id ? entry._id === item._id : entry.name === name);
       if (index === -1) {
         return [item, ...list];
       }
@@ -95,7 +100,7 @@ export class ReviewGameService {
     this.loadError.set(false);
     this.isLoading.set(true);
     this.http
-      .get<ReviewGame[]>('https://service-collection.vercel.app/review-game')
+      .get<ReviewGame[]>(`${API_URL}/review-game`)
       .subscribe({
         next: (data) => {
           this.reviewGames.set(data ?? []);

@@ -1,8 +1,13 @@
+import { GalleryPhoto } from '../shared/review-media.service';
+import { API_URL } from '../../shared/api-url';
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 export interface ReviewAnime {
   name: string;
+  _id?: string;
+  gallery?: GalleryPhoto[];
+  imageFolder?: string;
   'premiered(JP)': string;
   image: string;
   'finished date': string;
@@ -43,31 +48,31 @@ export class ReviewAnimeService {
 
   createReviewAnime(payload: ReviewAnime) {
     return this.http.post<ReviewAnime>(
-      'https://service-collection.vercel.app/review-anime',
+      `${API_URL}/review-anime`,
       payload
     );
   }
 
   getAllReviews() {
-    return this.http.get<ReviewAnime[]>('https://service-collection.vercel.app/review-anime');
+    return this.http.get<ReviewAnime[]>(`${API_URL}/review-anime`);
   }
 
-  updateReviewAnimeByName(name: string, payload: ReviewAnime) {
+  updateReviewAnimeByName(name: string, payload: ReviewAnime, id = '') {
     return this.http.put<ReviewAnime>(
-      `https://service-collection.vercel.app/review-anime/name/${encodeURIComponent(name)}`,
+      `${API_URL}/review-anime/${id ? '_id' : 'name'}/${encodeURIComponent(id || name)}`,
       payload
     );
   }
 
   getTypes() {
     return this.http.get<string[]>(
-      'https://service-collection.vercel.app/review-anime/types'
+      `${API_URL}/review-anime/types`
     );
   }
 
   getGenres() {
     return this.http.get<string[]>(
-      'https://service-collection.vercel.app/review-anime/genres'
+      `${API_URL}/review-anime/genres`
     );
   }
 
@@ -77,7 +82,7 @@ export class ReviewAnimeService {
 
   replaceReviewAnimeByName(name: string, item: ReviewAnime) {
     this.reviewAnime.update((list) => {
-      const index = list.findIndex((entry) => entry.name === name);
+      const index = list.findIndex((entry) => item._id ? entry._id === item._id : entry.name === name);
       if (index === -1) {
         return [item, ...list];
       }
@@ -96,7 +101,7 @@ export class ReviewAnimeService {
     this.loadError.set(false);
     this.isLoading.set(true);
     this.http
-      .get<ReviewAnime[]>('https://service-collection.vercel.app/review-anime')
+      .get<ReviewAnime[]>(`${API_URL}/review-anime`)
       .subscribe({
         next: (data) => {
           this.reviewAnime.set(data ?? []);

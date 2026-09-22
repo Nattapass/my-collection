@@ -1,3 +1,4 @@
+import { API_URL } from '../shared/api-url';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Component, DestroyRef, inject, signal } from '@angular/core';
@@ -75,7 +76,7 @@ export class RegisterComponent {
     if (selectedManga && selectedManga.no) {
       this.http
         .put(
-          `https://service-collection.vercel.app/manga/no/${selectedManga.no}`,
+          `${API_URL}/manga/no/${selectedManga.no}`,
           this.listForm.value,
           { withCredentials: true }
         )
@@ -117,7 +118,7 @@ export class RegisterComponent {
     } else {
       this.http
         .post<any>(
-          'https://service-collection.vercel.app/manga',
+          `${API_URL}/manga`,
           this.listForm.value,
           { withCredentials: true }
         )
