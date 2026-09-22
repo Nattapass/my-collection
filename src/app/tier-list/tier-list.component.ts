@@ -1,11 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, signal } from '@angular/core';
+import { Component, computed, signal } from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ReviewRankComponent } from '../review/shared/review-rank.component';
 import { ReviewAnime, ReviewAnimeService } from '../review/review-anime/review-anime.service';
 import { ReviewBook, ReviewBookService } from '../review/review-book/review-book.service';
 import { ReviewGame, ReviewGameService } from '../review/review-game/review-game.service';
 import { ReviewPlamo, ReviewPlamoService } from '../review/review-plamo/review-plamo.service';
 
-type TierCategory = 'anime' | 'game' | 'book' | 'modelkit';
+type TierCategory = 'anime' | 'game' | 'book' | 'plamo';
 type TierValue = 'S' | 'A' | 'B' | 'C' | 'D';
 type TierItem = {
   name: string;
@@ -28,18 +31,18 @@ type TierItem = {
 @Component({
   selector: 'app-tier-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink, ReviewRankComponent],
   templateUrl: './tier-list.component.html',
   styleUrl: './tier-list.component.scss',
 })
-export class TierListComponent implements OnInit {
+export class TierListComponent  {
   private readonly minimumGenreItems = 5;
   readonly tiers: TierValue[] = ['S', 'A', 'B', 'C', 'D'];
   readonly categories: Array<{ key: TierCategory; label: string }> = [
     { key: 'anime', label: 'Anime' },
     { key: 'game', label: 'Game' },
     { key: 'book', label: 'Book' },
-    { key: 'modelkit', label: 'Model Kit' },
+    { key: 'plamo', label: 'Plamo' },
   ];
   readonly selectedCategory = signal<TierCategory>('anime');
   private readonly collapsedTemplates = signal<Set<string>>(new Set());
@@ -56,7 +59,7 @@ export class TierListComponent implements OnInit {
         return this.reviewGameService.reviewGames();
       case 'book':
         return this.reviewBookService.reviewBooks();
-      case 'modelkit':
+      case 'plamo':
         return this.reviewPlamoService.reviewPlamos();
     }
   });
@@ -64,7 +67,7 @@ export class TierListComponent implements OnInit {
   readonly genres = computed(() => {
     const values = new Map<string, number>();
     this.selectedItems().forEach((item) => {
-      this.genresOf(item).forEach((genre) => {
+      [...new Set(this.genresOf(item))].forEach((genre) => {
         values.set(genre, (values.get(genre) ?? 0) + 1);
       });
     });
@@ -82,7 +85,7 @@ export class TierListComponent implements OnInit {
         return this.reviewGameService.isLoading();
       case 'book':
         return this.reviewBookService.isLoading();
-      case 'modelkit':
+      case 'plamo':
         return this.reviewPlamoService.isLoading();
     }
   });
@@ -91,22 +94,42 @@ export class TierListComponent implements OnInit {
     private reviewAnimeService: ReviewAnimeService,
     private reviewBookService: ReviewBookService,
     private reviewGameService: ReviewGameService,
-    private reviewPlamoService: ReviewPlamoService
-  ) {}
-
-  ngOnInit() {
-    this.reviewAnimeService.loadOnce();
-    this.reviewBookService.loadOnce();
-    this.reviewGameService.loadOnce();
-    this.reviewPlamoService.loadOnce();
+    private reviewPlamoService: ReviewPlamoService,
+    private router: Router,
+    private route: ActivatedRoute
+  ) {
+    this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe(params => {
+      const raw = params.get('category');
+      const category = raw === 'modelkit' ? 'plamo' : raw;
+      this.selectedCategory.set(this.categories.some(item => item.key === category) ? category as TierCategory : 'anime');
+      this.service().loadOnce();
+    });
   }
 
-  selectCategory(category: TierCategory) {
-    this.selectedCategory.set(category);
+  private service() {
+    switch (this.selectedCategory()) {
+      case 'anime': return this.reviewAnimeService;
+      case 'book': return this.reviewBookService;
+      case 'game': return this.reviewGameService;
+      default: return this.reviewPlamoService;
+    }
   }
-
+  readonly loadError = computed(() => this.service().loadError());
+  readonly failedImages = signal(new Set<string>());
+  readonly boards = computed(() => [
+    { key: '', title: 'รวมทุกเรื่อง', count: this.selectedItems().length },
+    ...this.genres().map(genre => ({key:genre, title:genre, count:this.genreCount(genre)}))
+  ]);
+  selectCategory(category: string) {
+    this.router.navigate([], {relativeTo:this.route, queryParams:{category}, queryParamsHandling:'merge'});
+  }
+  refresh() { this.service().refresh(); }
+  failImage(url: string) { this.failedImages.update(urls => new Set([...urls,url])); }
+  tooltip(item: TierItem) {
+    return [item.name, ...this.itemDetails(item).map(detail => detail.label + ': ' + detail.value)].join('\n');
+  }
   itemsForTier(tier: TierValue) {
-    return this.selectedItems().filter((item) => String(item.tier ?? '').toUpperCase() === tier);
+    return this.selectedItems().filter((item) => String(item.tier ?? '').trim().toUpperCase() === tier);
   }
 
   toggleTemplate(genre: string) {
@@ -156,7 +179,7 @@ export class TierListComponent implements OnInit {
           { label: 'จำนวนเล่ม', value: item.total },
           { label: 'วันที่อ่านจบ', value: item.finishedDate },
         ].filter((detail) => detail.value !== undefined && detail.value !== null && detail.value !== '');
-      case 'modelkit':
+      case 'plamo':
         return [
           { label: 'ไลน์', value: item.line },
           { label: 'วันที่ต่อเสร็จ', value: item.finishedDate },

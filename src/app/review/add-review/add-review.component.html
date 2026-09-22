@@ -1,7 +1,8 @@
-<div class="rounded-md border border-gray-200 bg-white p-4">
-  <div class="d-flex justify-between align-items-center">
+<section class="review-editor" [attr.data-category]="reviewCategory()">
+  <a class="back-link" [routerLink]="['/review', reviewCategory() || 'review-anime']">&#8592; กลับหน้ารวมรีวิว</a>
+  <div class="editor-heading d-flex justify-between align-items-center">
     <div>
-      <h3 class="text-lg font-semibold text-gray-900">{{ pageTitle() }}</h3>
+      <p class="eyebrow">MY COLLECTION / EDITOR</p><h1>{{ pageTitle() }}</h1>
       <p class="mt-2 text-sm text-gray-600">{{ pageSubtitle() }}</p>
     </div>
   </div>
@@ -22,6 +23,17 @@
     </select>
   </div>
 
+  @if (reviewCategory()) {
+    <aside class="form-preview">
+      @for (url of [activeForm().get('image')?.value]; track url) {
+        @if (url) {<img [src]="url" alt="ตัวอย่างปก" (error)="$any($event.target).hidden = true" />}
+      }
+      <div><span>ตัวอย่างรีวิว</span><h2>{{ activeForm().get('name')?.value || 'ชื่อเรื่องของคุณ' }}</h2></div>
+      <app-review-rank [tier]="activeForm().get('tier')?.value || ''" />
+    </aside>
+  } @else {
+    <p class="category-prompt">เลือกประเภทรีวิวเพื่อเริ่มกรอกข้อมูล</p>
+  }
   @if (isEditMode()) {
     <p class="mt-2 text-xs text-gray-500">Category is locked while editing.</p>
   }
@@ -42,7 +54,7 @@
           </select>
         </div>
         <div>
-          <label class="text-sm font-medium text-gray-700">License</label>
+          <label class="text-sm font-medium text-gray-700">สำนักพิมพ์</label>
           <select
             class="form-select mt-1"
             [value]="selectedBookLicense()"
@@ -97,21 +109,22 @@
           </div>
           <div class="mt-2 flex flex-wrap gap-2">
             @for (genre of getGenres(reviewBookForm); track genre) {
-              <button type="button" class="review-genre-chip genre-chip-0" (click)="removeGenre(reviewBookForm, genre)">{{ genre }} x</button>
+              <button type="button" class="review-genre-chip" [appGenreColor]="$index" (click)="removeGenre(reviewBookForm, genre)">{{ genre }} x</button>
             }
           </div>
         </div>
         <div class="sm:col-span-2">
-          <label class="text-sm font-medium text-gray-700">รูป</label>
+          <label class="text-sm font-medium text-gray-700">URL รูปหน้าปก</label>
           <input class="form-control mt-1" type="text" formControlName="image" />
         </div>
         <div class="sm:col-span-2">
           <label class="text-sm font-medium text-gray-700">ความคิดเห็น</label>
-          <textarea class="form-control mt-1" rows="3" formControlName="comment"></textarea>
+          <textarea class="form-control mt-1" rows="9" formControlName="comment"></textarea>
         </div>
       </div>
 
-      <div class="mt-4 d-flex justify-between align-items-center gap-3">
+      <app-review-photo-picker />
+      <div class="save-bar mt-4 d-flex justify-between align-items-center gap-3">
         <div>
           @if (errorMessage()) { <p class="text-sm text-red-600">{{ errorMessage() }}</p> }
           @if (successMessage()) { <p class="text-sm text-green-600">{{ successMessage() }}</p> }
@@ -194,21 +207,22 @@
           </div>
           <div class="mt-2 flex flex-wrap gap-2">
             @for (genre of getGenres(reviewAnimeForm); track genre) {
-              <button type="button" class="review-genre-chip genre-chip-1" (click)="removeGenre(reviewAnimeForm, genre)">{{ genre }} x</button>
+              <button type="button" class="review-genre-chip" [appGenreColor]="$index" (click)="removeGenre(reviewAnimeForm, genre)">{{ genre }} x</button>
             }
           </div>
         </div>
         <div class="sm:col-span-2">
-          <label class="text-sm font-medium text-gray-700">รูป</label>
+          <label class="text-sm font-medium text-gray-700">URL รูปหน้าปก</label>
           <input class="form-control mt-1" type="text" formControlName="image" />
         </div>
         <div class="sm:col-span-2">
           <label class="text-sm font-medium text-gray-700">ความคิดเห็น</label>
-          <textarea class="form-control mt-1" rows="3" formControlName="comment"></textarea>
+          <textarea class="form-control mt-1" rows="9" formControlName="comment"></textarea>
         </div>
       </div>
 
-      <div class="mt-4 d-flex justify-between align-items-center gap-3">
+      <app-review-photo-picker />
+      <div class="save-bar mt-4 d-flex justify-between align-items-center gap-3">
         <div>
           @if (errorMessage()) { <p class="text-sm text-red-600">{{ errorMessage() }}</p> }
           @if (successMessage()) { <p class="text-sm text-green-600">{{ successMessage() }}</p> }
@@ -224,7 +238,7 @@
     <form class="mt-6" [formGroup]="reviewPlamoForm" (ngSubmit)="submitReviewPlamo()">
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div class="sm:col-span-2">
-          <label class="text-sm font-medium text-gray-700">รูป</label>
+          <label class="text-sm font-medium text-gray-700">URL รูปหน้าปก</label>
           <input class="form-control mt-1" type="text" formControlName="image" />
         </div>
         <div>
@@ -279,17 +293,18 @@
           </div>
           <div class="mt-2 flex flex-wrap gap-2">
             @for (genre of getGenres(reviewPlamoForm); track genre) {
-              <button type="button" class="review-genre-chip genre-chip-2" (click)="removeGenre(reviewPlamoForm, genre)">{{ genre }} x</button>
+              <button type="button" class="review-genre-chip" [appGenreColor]="$index" (click)="removeGenre(reviewPlamoForm, genre)">{{ genre }} x</button>
             }
           </div>
         </div>
         <div class="sm:col-span-2">
           <label class="text-sm font-medium text-gray-700">ความคิดเห็น</label>
-          <textarea class="form-control mt-1" rows="3" formControlName="comment"></textarea>
+          <textarea class="form-control mt-1" rows="9" formControlName="comment"></textarea>
         </div>
       </div>
 
-      <div class="mt-4 d-flex justify-between align-items-center gap-3">
+      <app-review-photo-picker />
+      <div class="save-bar mt-4 d-flex justify-between align-items-center gap-3">
         <div>
           @if (errorMessage()) { <p class="text-sm text-red-600">{{ errorMessage() }}</p> }
           @if (successMessage()) { <p class="text-sm text-green-600">{{ successMessage() }}</p> }
@@ -305,7 +320,7 @@
     <form class="mt-6" [formGroup]="reviewGameForm" (ngSubmit)="submitReviewGame()">
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div class="sm:col-span-2">
-          <label class="text-sm font-medium text-gray-700">รูป</label>
+          <label class="text-sm font-medium text-gray-700">URL รูปหน้าปก</label>
           <input class="form-control mt-1" type="text" formControlName="image" />
         </div>
         <div>
@@ -372,17 +387,18 @@
           </div>
           <div class="mt-2 flex flex-wrap gap-2">
             @for (genre of getGenres(reviewGameForm); track genre) {
-              <button type="button" class="review-genre-chip genre-chip-3" (click)="removeGenre(reviewGameForm, genre)">{{ genre }} x</button>
+              <button type="button" class="review-genre-chip" [appGenreColor]="$index" (click)="removeGenre(reviewGameForm, genre)">{{ genre }} x</button>
             }
           </div>
         </div>
         <div class="sm:col-span-2">
           <label class="text-sm font-medium text-gray-700">ความคิดเห็น</label>
-          <textarea class="form-control mt-1" rows="3" formControlName="comment"></textarea>
+          <textarea class="form-control mt-1" rows="9" formControlName="comment"></textarea>
         </div>
       </div>
 
-      <div class="mt-4 d-flex justify-between align-items-center gap-3">
+      <app-review-photo-picker />
+      <div class="save-bar mt-4 d-flex justify-between align-items-center gap-3">
         <div>
           @if (errorMessage()) { <p class="text-sm text-red-600">{{ errorMessage() }}</p> }
           @if (successMessage()) { <p class="text-sm text-green-600">{{ successMessage() }}</p> }
@@ -393,4 +409,4 @@
       </div>
     </form>
   }
-</div>
+</section>

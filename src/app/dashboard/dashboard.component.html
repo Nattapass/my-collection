@@ -1,21 +1,55 @@
-<section class="dashboard-hero">
-  <div class="glow glow-left"></div>
-  <div class="glow glow-right"></div>
-
-  <div class="hero-inner">
-    <div class="hero-content">
-      <h1 class="hero-title">
-        <span>Welcome to</span>
-        <span>My Collection!!</span>
-      </h1>
+<section class="collection" aria-labelledby="collection-title">
+  <header class="overview">
+    <span>Dashboard <span class="separator">/</span> Overview</span>
+    <a routerLink="/review/add-review">Add review <span aria-hidden="true">+</span></a>
+  </header>
+  <div class="exhibition" (mouseenter)="hovered = true" (mouseleave)="hovered = false"
+    (focusin)="focused = true" (focusout)="focused = false">
+    <div class="brand">
+      <h1 id="collection-title">My Collection<span>.</span></h1>
+      <p>Anime / Games / Books / Plamo</p>
     </div>
+    @for (group of groups; track group.key; let i = $index) {
+      <article appFloat class="feature" [attr.data-category]="group.key" [attr.aria-labelledby]="'category-' + group.key" [attr.aria-busy]="group.loading()">
+        <header class="feature-heading">
+          <h2 [id]="'category-' + group.key">
+            <a [routerLink]="['/review', 'review-' + group.key]"><svg class="category-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path [attr.d]="categoryIcon(group.key)" /></svg>{{ group.label }}</a>
+          </h2>
+          <span class="count">{{ group.items().length }} reviews</span>
+          <button type="button" (click)="next(i)" [disabled]="group.items().length < 2"
+            [attr.aria-label]="'Show another ' + group.label + ' review'">Next <span aria-hidden="true">&#8594;</span></button>
+        </header>
+        @if (selected()[i]; as item) {
+          <div class="feature-body">
+            <a class="cover" [routerLink]="['/full-review', group.key, item.name]" [attr.aria-label]="'Read ' + item.name">
+              @if (item.image && !failedImages().has(item.image)) {
+                <img [src]="item.image" [alt]="item.name" (error)="imageFailed(item.image)" decoding="async" />
+              } @else {
+                <span class="cover-fallback" aria-hidden="true">{{ group.label }}<small>No cover available</small></span>
+              }
+            </a>
+            @for (review of [item]; track review) {
+              <div class="review-copy">
+                <app-review-rank [tier]="review.tier" />
+                <h3><a [routerLink]="['/full-review', group.key, review.name]">{{ review.name }}</a></h3>
+                <div class="genres" aria-label="Genres">@for (genre of genres(review); track $index) {<span class="genre-tag" [appGenreColor]="$index">{{ genre }}</span>}</div>
+                <div class="read-action"><a class="read-link" [routerLink]="['/full-review', group.key, review.name]">&#3629;&#3656;&#3634;&#3609;&#3605;&#3656;&#3629; <span aria-hidden="true">&#8594;</span></a></div>
+              </div>
+            }
+          </div>
+        } @else if (group.loading()) {
+          <div class="placeholder" role="status">Loading {{ group.label }} reviews...</div>
+        } @else if (!group.error()) {
+          <div class="placeholder"><p>No {{ group.label }} reviews yet.</p><a routerLink="/review/add-review">Add your first review &#8594;</a></div>
+        }
+        @if (group.error()) {
+          <div class="load-error" role="status">Unable to load reviews. <button type="button" (click)="group.retry()" [disabled]="group.loading()">Try again</button></div>
+        }
+      </article>
+    }
   </div>
-
-  <div class="hero-image-wrap">
-    <img
-      class="hero-character"
-      src="assets/images/Shallie.png"
-      alt="Shallie character"
-    />
-  </div>
+  <footer class="rotation-controls">
+    <p>{{ paused() ? 'Rotation paused' : 'A new review every 8 seconds' }}<span class="hover-note"> &middot; Pauses while you explore</span></p>
+    <button type="button" (click)="paused.set(!paused())" [attr.aria-pressed]="paused()">{{ paused() ? 'Play rotation' : 'Pause rotation' }}</button>
+  </footer>
 </section>

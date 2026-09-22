@@ -1,135 +1,38 @@
-<div class="rounded-md border border-gray-200 bg-white p-4">
-  <div class="d-flex justify-between align-items-center gap-3">
-    <div>
-      <h2 class="text-xl font-semibold text-gray-900">Tier List</h2>
-      <p class="mt-1 text-sm text-gray-500">All reviewed items first, followed by tier lists grouped by genre.</p>
-    </div>
-  </div>
-
-  <div class="mt-4 flex flex-wrap items-center gap-2">
-    @for (category of categories; track category.key) {
-      <button
-        type="button"
-        class="rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
-        [ngClass]="selectedCategory() === category.key ? 'bg-gray-900 text-white hover:bg-gray-900' : ''"
-        (click)="selectCategory(category.key)"
-      >
-        {{ category.label }}
-      </button>
-    }
-  </div>
-
-  <div class="mt-6">
-    @if (isLoading()) {
-      <div class="rounded-md border border-gray-200 p-4">
-        <div class="h-5 w-40 animate-pulse rounded bg-gray-200"></div>
-        <div class="mt-4 space-y-3">
-          @for (item of [].constructor(5); let idx = $index; track idx) {
-            <div class="h-24 animate-pulse rounded bg-gray-100"></div>
-          }
-        </div>
-      </div>
-    } @else if (selectedItems().length === 0) {
-      <div class="rounded-md border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500">
-        No reviewed items found for {{ selectedTitle() }}.
-      </div>
-    } @else {
-      <div class="space-y-6">
-      <section class="space-y-4 rounded-md border border-gray-200 bg-gray-50 p-4">
-        <div class="text-base font-semibold text-gray-900">รวมทุกเรื่องใน {{ selectedTitle() }}</div>
-        @for (tier of tiers; track tier) {
-          <div class="tier-list-row">
-            <div class="tier-list-label" [ngClass]="tierClass(tier)">{{ tier }}</div>
-            <div class="tier-list-items">
-              @for (item of itemsForTier(tier); track item.name) {
-                <div class="tier-list-item group relative w-20">
-                  <div class="tier-list-poster h-28 w-20 overflow-hidden rounded border border-gray-200 bg-gray-100 shadow-sm">
-                    <img [src]="item.image" [alt]="item.name" class="h-full w-full object-cover" />
-                  </div>
-                  <p class="mt-1 line-clamp-2 text-xs font-medium text-gray-700" [title]="item.name">{{ item.name }}</p>
-                  <div class="tier-hover-card">
-                    <div class="h-32 w-24 overflow-hidden rounded border border-gray-200 bg-gray-100">
-                      <img [src]="item.image" [alt]="item.name" class="h-full w-full object-cover" />
-                    </div>
-                    <div class="min-w-0 flex-1">
-                      <p class="text-sm font-semibold text-gray-900">{{ item.name }}</p>
-                      <div class="mt-2 space-y-1">
-                        @for (detail of itemDetails(item); track detail.label) {
-                          <p class="text-xs text-gray-600">
-                            <span class="font-semibold text-gray-800">{{ detail.label }}:</span>
-                            {{ detail.value }}
-                          </p>
-                        }
-                      </div>
-                      <div class="mt-2 flex flex-wrap gap-1">
-                        @for (itemGenre of genresOf(item); track itemGenre) {
-                          <span class="review-genre-chip genre-chip-0">{{ itemGenre }}</span>
-                        }
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              }
-            </div>
-          </div>
-        }
-      </section>
-
-      @for (genre of genres(); track genre) {
-        <section class="rounded-md border border-gray-200">
-          <button
-            type="button"
-            class="tier-template-header"
-            [attr.aria-expanded]="!isCollapsed(genre)"
-            (click)="toggleTemplate(genre)"
-          >
-            <span class="text-base font-semibold text-gray-900">
-              {{ selectedTitle() }}: {{ genre }}
-              <span class="text-sm font-medium text-gray-500">({{ genreCount(genre) }})</span>
-            </span>
-            <span class="tier-template-toggle">{{ isCollapsed(genre) ? 'Show' : 'Hide' }}</span>
-          </button>
-          @if (!isCollapsed(genre)) {
+<section class="tier-page" [attr.data-category]="selectedCategory()">
+  <header class="page-heading"><div><p class="eyebrow">MY COLLECTION / RANKING</p><h1>Tier List <span>{{ selectedTitle() }}</span></h1><p class="hint">กดภาพเพื่ออ่านรีวิวเต็มของแต่ละเรื่อง</p></div>
+    <div class="actions"><a [routerLink]="['/review','review-' + selectedCategory()]">หน้ารวมรีวิว &#8599;</a><button type="button" (click)="refresh()" [disabled]="isLoading()">&#8635; {{ isLoading() ? 'กำลังโหลด' : 'Refresh' }}</button></div>
+  </header>
+  <div class="category-bar"><label for="tier-category">ประเภทรีวิว</label><select id="tier-category" [value]="selectedCategory()" (change)="selectCategory($any($event.target).value)">@for (category of categories; track category.key) {<option [value]="category.key">{{ category.label }}</option>}</select><span>{{ selectedItems().length }} เรื่อง</span></div>
+  @if (loadError()) {<p class="notice" role="alert">โหลดข้อมูลไม่สำเร็จ <button type="button" (click)="refresh()" [disabled]="isLoading()">ลองใหม่</button></p>}
+  @if (isLoading() && !selectedItems().length) {
+    <p class="empty" role="status">กำลังโหลด Tier List...</p>
+  } @else if (!selectedItems().length && !loadError()) {
+    <div class="empty"><h2>ยังไม่มีรีวิวในประเภทนี้</h2><a routerLink="/review/add-review" [queryParams]="{category:'review-' + selectedCategory()}">+ เพิ่มรีวิวแรก</a></div>
+  } @else {
+    @for (board of boards(); track board.key; let boardIndex = $index) {
+      <section class="board" [attr.aria-busy]="isLoading()">
+        @if (board.key) {
+          <button class="board-heading" type="button" (click)="toggleTemplate(board.key)" [attr.aria-expanded]="!isCollapsed(board.key)" [attr.aria-controls]="'tier-board-' + boardIndex"><span>{{ board.title }} <small>{{ board.count }} เรื่อง</small></span><span>{{ isCollapsed(board.key) ? '+' : '−' }}</span></button>
+        } @else {<h2 class="board-heading">{{ board.title }} <small>{{ board.count }} เรื่อง</small></h2>}
+        @if (!board.key || !isCollapsed(board.key)) {
+          <div [id]="'tier-board-' + boardIndex">
             @for (tier of tiers; track tier) {
-              <div class="tier-list-row">
-                <div class="tier-list-label" [ngClass]="tierClass(tier)">{{ tier }}</div>
-                <div class="tier-list-items">
-                  @for (item of itemsFor(genre, tier); track item.name) {
-                    <div class="tier-list-item group relative w-20">
-                      <div class="tier-list-poster h-28 w-20 overflow-hidden rounded border border-gray-200 bg-gray-100 shadow-sm">
-                        <img [src]="item.image" [alt]="item.name" class="h-full w-full object-cover" />
-                      </div>
-                      <p class="mt-1 line-clamp-2 text-xs font-medium text-gray-700" [title]="item.name">{{ item.name }}</p>
-                      <div class="tier-hover-card">
-                        <div class="h-32 w-24 overflow-hidden rounded border border-gray-200 bg-gray-100">
-                          <img [src]="item.image" [alt]="item.name" class="h-full w-full object-cover" />
-                        </div>
-                        <div class="min-w-0 flex-1">
-                          <p class="text-sm font-semibold text-gray-900">{{ item.name }}</p>
-                          <div class="mt-2 space-y-1">
-                            @for (detail of itemDetails(item); track detail.label) {
-                              <p class="text-xs text-gray-600">
-                                <span class="font-semibold text-gray-800">{{ detail.label }}:</span>
-                                {{ detail.value }}
-                              </p>
-                            }
-                          </div>
-                          <div class="mt-2 flex flex-wrap gap-1">
-                            @for (itemGenre of genresOf(item); track itemGenre) {
-                              <span class="review-genre-chip genre-chip-0">{{ itemGenre }}</span>
-                            }
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  }
+              <div class="rank-row">
+                <div class="rank-label"><app-review-rank [tier]="tier" /></div>
+                <div class="posters">
+                  @for (item of (board.key ? itemsFor(board.key,tier) : itemsForTier(tier)); track $index) {
+                    <a class="poster" [routerLink]="['/full-review',selectedCategory(),item.name]" [title]="tooltip(item)" [attr.aria-label]="'อ่านรีวิว ' + item.name + ' Tier ' + tier">
+                      <div class="art">@if (item.image && !failedImages().has(item.image)) {<img [src]="item.image" [alt]="item.name" loading="lazy" (error)="failImage(item.image)" />} @else {<span>No cover</span>}</div>
+                      <span class="poster-title">{{ item.name }}</span>
+                    </a>
+                  } @empty {<span class="no-rank">ยังไม่มีเรื่องใน Tier {{ tier }}</span>}
                 </div>
               </div>
             }
-          }
-        </section>
-      }
-      </div>
+          </div>
+        }
+      </section>
     }
-  </div>
-</div>
+    <p class="footnote">กลุ่มแยกตามแนวเรื่องจะแสดงเมื่อมีอย่างน้อย 5 เรื่อง</p>
+  }
+</section>

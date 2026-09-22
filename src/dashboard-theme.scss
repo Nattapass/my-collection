@@ -1,0 +1,15 @@
+/* Dashboard category palette. Tier colors live in the shared rank component. */
+app-dashboard {
+  [data-category=anime] { --accent:#b93242; --category-tint:#fff0f2; --category-edge:#d86a77; }
+  [data-category=game] { --accent:#237448; --category-tint:#edf8f0; --category-edge:#5ca97a; }
+  [data-category=book] { --accent:#8c6100; --category-tint:#fff7df; --category-edge:#c89a23; }
+  [data-category=plamo] { --accent:#7546aa; --category-tint:#f5effc; --category-edge:#ac85d0; }
+  .feature { display:flex; flex-direction:column; }
+  .feature-heading h2 { color:var(--accent); }
+  .overview>a { --accent:#5260b0; }
+  .rotation-controls button { --accent:#405777; }
+  .read-action { display:flex; justify-content:flex-end; }
+  @media(hover:hover) and (prefers-reduced-motion:no-preference) {
+    .feature:hover { transform:translateY(-3px); }
+  }
+}

@@ -1,0 +1,23 @@
+.motion-preference{max-width:1280px;margin:auto;padding:.6rem 2rem 0;text-align:right}
+.motion-preference button{font:inherit;font-size:.72rem;padding:.3rem .65rem;border:1px solid #bbcde4;border-radius:20px;background:#f5f9ff;color:#425d7e}
+.floating-surface{--float-distance:-3px;animation:surface-float 7s ease-in-out infinite;animation-play-state:paused}
+.floating-surface:nth-of-type(2n){animation-delay:-2s}
+.floating-surface:nth-of-type(3n){animation-delay:-4s}
+.floating-surface.float-visible{animation-play-state:running}
+app-review-library .floating-surface{--float-distance:-1.5px;animation-duration:9s}
+.floating-surface:hover,.floating-surface:focus-within,.floating-surface.float-hidden{animation-play-state:paused}
+@keyframes surface-float{0%,100%{translate:0 0}50%{translate:0 var(--float-distance)}}
+.refresh-icon{display:inline-block}
+.refresh-icon.is-loading{animation:refresh-spin 1s linear infinite}
+@keyframes refresh-spin{to{rotate:360deg}}
+.skeleton-row{display:flex;gap:1.5rem;padding:1.5rem;border-top:1px solid #dce4ee}
+.skeleton-cover{width:90px;height:135px;flex-shrink:0}
+.skeleton-lines{flex:1;padding-top:1rem}
+.skeleton-lines i{display:block;height:16px;margin-bottom:20px;border-radius:5px}
+.skeleton-lines i:nth-child(2){width:65%}
+.skeleton-lines i:nth-child(3){width:40%}
+.skeleton-cover,.skeleton-lines i{background:linear-gradient(100deg,#e6ebf2 20%,#f6f8fc 45%,#e6ebf2 70%);background-size:200% 100%;animation:skeleton-light 2s linear infinite;border-radius:8px}
+@keyframes skeleton-light{to{background-position:-200% 0}}
+.motion-off .floating-surface,.motion-off .is-loading,.motion-off .skeleton-cover,.motion-off .skeleton-lines i{animation:none!important}
+.motion-off *, .motion-off *::before,.motion-off *::after{animation:none!important;transition:none!important}
+@media(prefers-reduced-motion:reduce){.floating-surface,.refresh-icon.is-loading,.skeleton-cover,.skeleton-lines i{animation:none!important}}

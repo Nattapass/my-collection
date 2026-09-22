@@ -22,15 +22,15 @@ export interface ReviewPlamo {
 export class ReviewPlamoService {
   private readonly loaded = signal(false);
   readonly isLoading = signal(false);
+  readonly loadError = signal(false);
   readonly reviewPlamos = signal<ReviewPlamo[]>([]);
 
   constructor(private http: HttpClient) {}
 
   loadOnce() {
-    if (this.loaded()) {
+    if (this.loaded() || this.isLoading()) {
       return;
     }
-    this.isLoading.set(true);
     this.fetch();
   }
 
@@ -85,10 +85,12 @@ export class ReviewPlamoService {
   }
 
   private fetch(force = false) {
+    if (this.isLoading()) return;
     if (!force && this.loaded()) {
       this.isLoading.set(false);
       return;
     }
+    this.loadError.set(false);
     this.isLoading.set(true);
     this.http
       .get<ReviewPlamo[]>('https://service-collection.vercel.app/review-plamo')
@@ -99,6 +101,7 @@ export class ReviewPlamoService {
           this.isLoading.set(false);
         },
         error: (error) => {
+          this.loadError.set(true);
           this.isLoading.set(false);
           console.error(error);
         },

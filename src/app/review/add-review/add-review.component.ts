@@ -1,7 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ReviewPhotoPickerComponent } from '../shared/review-photo-picker.component';
+import { ReviewRankComponent } from '../shared/review-rank.component';
+import { GenreColorDirective } from '../../shared/genre-color.directive';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -17,7 +20,7 @@ type ReviewInitialValues = Record<string, string | number | string[]>;
 @Component({
   selector: 'app-add-review',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, ReviewPhotoPickerComponent, ReviewRankComponent, GenreColorDirective],
   templateUrl: './add-review.component.html',
   styleUrl: './add-review.component.scss'
 })
@@ -119,6 +122,15 @@ export class AddReviewComponent {
     private reviewPlamoService: ReviewPlamoService,
     private reviewGameService: ReviewGameService
   ) {}
+
+  activeForm(): FormGroup {
+    switch (this.reviewCategory()) {
+      case 'review-book': return this.reviewBookForm;
+      case 'review-anime': return this.reviewAnimeForm;
+      case 'review-game': return this.reviewGameForm;
+      default: return this.reviewPlamoForm;
+    }
+  }
 
   ngOnInit() {
     this.route.queryParamMap

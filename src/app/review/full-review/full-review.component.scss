@@ -1,3 +1,13 @@
-:host {
-  display: block;
-}
+:host{display:block}.full-review{--accent:#b93242;--tint:#fff0f2;--edge:#e6b9c0;max-width:1080px;margin:auto;padding:clamp(1rem,3vw,2rem);color:#203552;background:#fff;border:1px solid var(--edge);border-top:4px solid var(--accent);border-radius:18px;box-shadow:0 6px 0 var(--tint),0 22px 50px #203b6320,inset 0 1px #fff}
+[data-category=book]{--accent:#8c6100;--tint:#fff7df;--edge:#e5cf91}[data-category=game]{--accent:#237448;--tint:#edf8f0;--edge:#b9dcc7}[data-category=plamo]{--accent:#7546aa;--tint:#f5effc;--edge:#d9c5eb}
+a{color:inherit;text-decoration:none}button{font:inherit;cursor:pointer;background:#fff;border:1px solid var(--edge);border-radius:9px;padding:.6rem 1rem;color:var(--accent);background:var(--tint)}
+.review-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:2rem;font-size:.9rem}.review-nav a{color:var(--accent)}
+.hero{display:grid;grid-template-columns:220px minmax(0,1fr);gap:2.5rem;align-items:center;margin-bottom:2.2rem}.cover{display:grid;place-items:center;min-height:230px}.cover img{width:100%;max-height:330px;object-fit:contain;filter:drop-shadow(0 12px 14px #20355225)}
+.eyebrow{font-size:.75rem;letter-spacing:.14em;color:var(--accent);font-weight:600}h1{font-size:clamp(1.7rem,3vw,2.8rem);line-height:1.45;font-weight:700;overflow-wrap:anywhere;margin:.6rem 0 1rem}
+.genres{display:flex;flex-wrap:wrap;gap:.5rem}.genres span{padding:.25rem .65rem;font-size:.8rem;border:1px solid;border-radius:7px}
+dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;border:1px solid var(--edge);border-radius:12px;background:var(--edge);overflow:hidden;margin:1.5rem 0 0}dl>div{background:var(--tint);padding:.8rem 1rem}dt{font-size:.8rem;color:#65768d;font-weight:400}dd{margin:.3rem 0 0;font-weight:500;overflow-wrap:anywhere}
+.comment-panel,.verdict{background:linear-gradient(135deg,var(--tint),#fff 70%);border:1px solid var(--edge);border-radius:16px;box-shadow:0 6px 22px #2748720c;padding:clamp(1.2rem,3vw,2.5rem)}
+h2{font-size:1.2rem;font-weight:600;margin-bottom:1.3rem;color:var(--accent)}.comment{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.95;font-size:1.05rem;max-width:78ch}
+.verdict{text-align:center;margin-top:2rem;padding:2.5rem}.verdict p{font-size:.9rem;letter-spacing:.12em;margin-bottom:1.5rem;color:var(--accent)}.verdict app-review-rank{transform:scale(1.35);margin:.5rem 0}.status{text-align:center;padding:3rem;background:#fff;border-radius:14px}
+a:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:4px}
+@media(max-width:640px){.hero{grid-template-columns:1fr;gap:1.2rem}.cover img{max-height:260px;width:auto;max-width:100%}.intro{text-align:left}.review-nav{font-size:.8rem}dl>div{padding:.7rem}.comment{font-size:1rem}}

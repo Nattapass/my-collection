@@ -24,15 +24,15 @@ export interface ReviewBook {
 export class ReviewBookService {
   private readonly loaded = signal(false);
   readonly isLoading = signal(false);
+  readonly loadError = signal(false);
   readonly reviewBooks = signal<ReviewBook[]>([]);
 
   constructor(private http: HttpClient) {}
 
   loadOnce() {
-    if (this.loaded()) {
+    if (this.loaded() || this.isLoading()) {
       return;
     }
-    this.isLoading.set(true);
     this.fetch();
   }
 
@@ -87,10 +87,12 @@ export class ReviewBookService {
   }
 
   private fetch(force = false) {
+    if (this.isLoading()) return;
     if (!force && this.loaded()) {
       this.isLoading.set(false);
       return;
     }
+    this.loadError.set(false);
     this.isLoading.set(true);
     this.http
       .get<ReviewBook[]>('https://service-collection.vercel.app/review-books')
@@ -101,6 +103,7 @@ export class ReviewBookService {
           this.isLoading.set(false);
         },
         error: (error) => {
+          this.loadError.set(true);
           this.isLoading.set(false);
           console.error(error);
         },

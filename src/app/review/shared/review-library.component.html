@@ -1,0 +1,50 @@
+<section class="library" [attr.data-category]="category()" aria-labelledby="library-title">
+  <header class="library-header">
+    <div><p class="eyebrow">MY COLLECTION / REVIEWS</p><h1 id="library-title">{{ title() }}<span>{{ items().length }}</span></h1><p class="subtitle">ค้นหาและจัดการรีวิวในคอลเลกชัน</p></div>
+    <div class="actions"><a routerLink="/tier-list" [queryParams]="{category: category()}">Tier List &#8599;</a><button type="button" (click)="refresh.emit()" [disabled]="loading()"><span class="refresh-icon" [class.is-loading]="loading()" aria-hidden="true">&#8635;</span> {{ loading() ? 'กำลังโหลด' : 'Refresh' }}</button><a class="primary" routerLink="/review/add-review" [queryParams]="{category: 'review-' + category()}">+ Add review</a></div>
+  </header>
+  <div class="toolbar">
+    <form class="search" (submit)="$event.preventDefault(); update({page: 1})">
+      <label class="sr-only" for="review-search">ค้นหาชื่อเรื่องหรือแนวเรื่อง</label>
+      <input id="review-search" type="search" placeholder="ค้นหาชื่อเรื่อง หรือแนวเรื่อง..." [ngModel]="state().search" name="search" (ngModelChange)="update({search: $event, page: 1})" />
+      <button type="submit">ค้นหา</button>
+    </form>
+    <button type="button" (click)="filterOpen.set(!filterOpen())" [attr.aria-expanded]="filterOpen()" aria-controls="library-filters">Filter @if (activeFilters().length) { ({{ activeFilters().length }}) }</button>
+    <label class="sort">เรียงตาม<select [ngModel]="state().sort" (ngModelChange)="update({sort: $event, page: 1})"><option value="">ลำดับเดิม</option>@for (field of sortFields(); track field.key) {<option [value]="field.key">{{ field.label }}</option>}</select></label>
+    <button type="button" [disabled]="!state().sort" (click)="update({descending: !state().descending, page: 1})" [attr.aria-label]="state().descending ? 'เปลี่ยนเป็นน้อยไปมาก' : 'เปลี่ยนเป็นมากไปน้อย'">{{ state().descending ? '↓' : '↑' }}</button>
+  </div>
+  @if (filterOpen()) {
+    <div id="library-filters" class="filters">
+      @for (field of filterFields(); track field.key) {<label>{{ field.label }}<select [ngModel]="state().filters[field.key] || ''" (ngModelChange)="filter(field.key, $event)"><option value="">ทั้งหมด</option>@for (option of options(field.key); track option) {<option [value]="option">{{ option }}</option>}</select></label>}
+      @for (key of ['genres', 'tier']; track key) {<label>{{ label(key) }}<select [ngModel]="state().filters[key] || ''" (ngModelChange)="filter(key, $event)"><option value="">ทั้งหมด</option>@for (option of options(key); track option) {<option [value]="option">{{ option }}</option>}</select></label>}
+    </div>
+  }
+  @if (state().search || activeFilters().length) {
+    <div class="chips">@for (filter of activeFilters(); track filter[0]) {<button type="button" (click)="this.filter(filter[0], '')">{{ label(filter[0]) }}: {{ filter[1] }} ×</button>}<button type="button" (click)="reset()">ล้างการค้นหา / ตัวกรอง</button></div>
+  }
+  <div class="results-bar"><span role="status">{{ first() }}–{{ last() }} จาก {{ sorted().length }} เรื่อง</span><div class="actions" aria-label="รูปแบบรายการ"><button type="button" [attr.aria-pressed]="state().view === 'list'" (click)="update({view: 'list'})">รายการ</button><button type="button" [attr.aria-pressed]="state().view === 'table'" (click)="update({view: 'table'})">ตารางเปรียบเทียบ</button></div></div>
+  @if (error()) {<p class="notice" role="alert">โหลดข้อมูลไม่สำเร็จ @if (items().length) {แสดงข้อมูลที่เก็บไว้ก่อนหน้า} <button type="button" (click)="refresh.emit()" [disabled]="loading()">ลองอีกครั้ง</button></p>}
+  @if (loading() && !items().length) {
+    <div class="loading-placeholder" role="status"><span class="sr-only">กำลังโหลดรีวิว...</span>@for (row of [0,1,2]; track row) {<div class="skeleton-row"><div class="skeleton-cover"></div><div class="skeleton-lines"><i></i><i></i><i></i></div></div>}</div>
+  } @else if (!visible().length) {
+    <div class="empty"><h2>{{ items().length ? 'ไม่พบเรื่องที่ตรงกับการค้นหา' : 'ยังไม่มีรีวิว' }}</h2><p>{{ items().length ? 'ลองเปลี่ยนคำค้นหาหรือล้างตัวกรอง' : 'เพิ่มรีวิวแรกเพื่อเริ่มคอลเลกชัน' }}</p></div>
+  } @else if (state().view === 'list') {
+    <div class="review-list" [attr.aria-busy]="loading()">
+      @for (item of visible(); track item.id) {
+        <article appFloat [appReveal]="page()" [revealStagger]="$index" class="review-row">
+          <a class="cover" [routerLink]="['/full-review', category(), item.name]" [attr.aria-label]="'อ่าน ' + item.name">@if (item.image && !failedImages().has(item.image)) {<img [src]="item.image" [alt]="item.name" loading="lazy" (error)="imageFailed(item.image)" />} @else {<span>No cover</span>}</a>
+          <div class="details"><h2><a [routerLink]="['/full-review', category(), item.name]">{{ item.name }}</a></h2><div class="genres">@for (genre of item.genres; track $index) {<span [appGenreColor]="$index">{{ genre }}</span>}</div>
+            <dl>@for (field of fields(); track field.key) {<div><dt>{{ field.label }}</dt><dd>{{ item.values[field.key] === '' ? '—' : item.values[field.key] }}</dd></div>}</dl>
+          </div>
+          <div class="row-side"><app-review-rank [tier]="item.tier" /><div class="row-actions"><a class="primary" [routerLink]="['/full-review', category(), item.name]"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>อ่านต่อ</a><button type="button" (click)="edit.emit(item.id)" [attr.aria-label]="'แก้ไข ' + item.name"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m15 4 5 5M4 20l5-1L21 7l-5-5L4 14Z"/></svg>แก้ไข</button></div></div>
+        </article>
+      }
+    </div>
+  } @else {
+    <div class="comparison" [appReveal]="page()" [revealStagger]="0" tabindex="0" role="region" aria-label="ตารางเปรียบเทียบ เลื่อนแนวนอนหรือลากด้วยเมาส์" (pointerdown)="startDrag($event)" (pointermove)="moveDrag($event)" (pointerup)="endDrag($event)" (pointercancel)="endDrag($event)" (lostpointercapture)="endDrag($event)">
+      <table><thead><tr><th>ปก</th>@for (field of sortFields(); track field.key) {<th [attr.aria-sort]="state().sort === field.key ? (state().descending ? 'descending' : 'ascending') : 'none'"><button type="button" (click)="sort(field.key)">{{ field.label }} {{ state().sort === field.key ? (state().descending ? '↓' : '↑') : '↕' }}</button></th>}<th>อ่าน</th><th>แก้ไข</th></tr></thead>
+      <tbody>@for (item of visible(); track item.id) {<tr><td>@if (item.image && !failedImages().has(item.image)) {<img [src]="item.image" [alt]="item.name" loading="lazy" (error)="imageFailed(item.image)" />}</td>@for (field of sortFields(); track field.key) {<td>{{ value(item, field.key) === '' ? '—' : value(item, field.key) }}</td>}<td><a [routerLink]="['/full-review', category(), item.name]">อ่านต่อ</a></td><td><button type="button" (click)="edit.emit(item.id)">แก้ไข</button></td></tr>}</tbody></table>
+    </div>
+  }
+  <footer class="pagination"><label>ต่อหน้า<select [ngModel]="state().size" (ngModelChange)="update({size: +$event, page: 1})">@for (size of [15, 30, 60]; track size) {<option [ngValue]="size">{{ size }}</option>}</select></label><div class="actions"><button type="button" [disabled]="page() === 1" (click)="update({page: 1})" aria-label="หน้าแรก">«</button><button type="button" [disabled]="page() === 1" (click)="update({page: page() - 1})">ก่อนหน้า</button><span>หน้า {{ page() }} / {{ pages() }}</span><button type="button" [disabled]="page() === pages()" (click)="update({page: page() + 1})">ถัดไป</button><button type="button" [disabled]="page() === pages()" (click)="update({page: pages()})" aria-label="หน้าสุดท้าย">»</button></div></footer>
+</section>

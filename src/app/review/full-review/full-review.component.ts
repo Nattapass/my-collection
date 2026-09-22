@@ -1,102 +1,88 @@
-import { CommonModule } from '@angular/common';
-import { Component, computed, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+﻿import { Component, computed, inject, signal } from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReviewAnime, ReviewAnimeService } from '../review-anime/review-anime.service';
 import { ReviewBook, ReviewBookService } from '../review-book/review-book.service';
 import { ReviewGame, ReviewGameService } from '../review-game/review-game.service';
 import { ReviewPlamo, ReviewPlamoService } from '../review-plamo/review-plamo.service';
+import { ReviewRankComponent } from '../shared/review-rank.component';
+import { ReviewGalleryComponent, ReviewPhoto } from '../shared/review-gallery.component';
+import { GenreColorDirective } from '../../shared/genre-color.directive';
 
-type ReviewCategory = 'anime' | 'book' | 'game' | 'plamo';
-type ReviewItem = ReviewAnime | ReviewBook | ReviewGame | ReviewPlamo;
+type Category = 'anime' | 'book' | 'game' | 'plamo';
+type Item = (ReviewAnime | ReviewBook | ReviewGame | ReviewPlamo) & { _id?: string; gallery?: ReviewPhoto[] };
 
 @Component({
   selector: 'app-full-review',
-  standalone: true,
-  imports: [CommonModule],
+  imports: [RouterLink, ReviewRankComponent, ReviewGalleryComponent, GenreColorDirective],
   templateUrl: './full-review.component.html',
   styleUrl: './full-review.component.scss'
 })
 export class FullReviewComponent {
-  readonly category = signal<ReviewCategory>('anime');
+  private readonly router = inject(Router);
+  private readonly services = {
+    anime: inject(ReviewAnimeService), book: inject(ReviewBookService),
+    game: inject(ReviewGameService), plamo: inject(ReviewPlamoService)
+  };
+  readonly category = signal<Category>('anime');
   readonly reviewId = signal('');
-  readonly item = signal<ReviewItem | null>(null);
-  readonly animeItem = computed(() => (this.category() === 'anime' ? (this.item() as ReviewAnime | null) : null));
-  readonly bookItem = computed(() => (this.category() === 'book' ? (this.item() as ReviewBook | null) : null));
-  readonly gameItem = computed(() => (this.category() === 'game' ? (this.item() as ReviewGame | null) : null));
-  readonly plamoItem = computed(() => (this.category() === 'plamo' ? (this.item() as ReviewPlamo | null) : null));
-
-  readonly categoryLabel = computed(() => {
+  readonly coverFailed = signal(false);
+  readonly categoryLabel = computed(() => ({anime:'Anime',book:'Books',game:'Games',plamo:'Plamo'})[this.category()]);
+  readonly loading = computed(() => this.services[this.category()].isLoading());
+  readonly error = computed(() => this.services[this.category()].loadError());
+  readonly item = computed<Item | null>(() => {
     const category = this.category();
-    switch (category) {
-      case 'anime':
-        return 'Anime';
-      case 'book':
-        return 'Book';
-      case 'game':
-        return 'Game';
-      case 'plamo':
-        return 'Plamo';
-      default:
-        return 'Review';
+    const list: Item[] = category === 'anime' ? this.services.anime.reviewAnime() :
+      category === 'book' ? this.services.book.reviewBooks() :
+      category === 'game' ? this.services.game.reviewGames() : this.services.plamo.reviewPlamos();
+    const id = this.reviewId();
+    const direct = list.find(item => item._id === id || item.name === id);
+    if (direct) return direct;
+    // Support older links that encoded the name twice; preserve literal '%' names.
+    try { return list.find(item => item.name === decodeURIComponent(id)) ?? null; } catch { return null; }
+  });
+  readonly genres = computed(() => Array.isArray(this.item()?.genres) ? this.item()!.genres.filter(Boolean) : []);
+  readonly photos = computed(() => {
+    const gallery = this.item()?.gallery;
+    return Array.isArray(gallery) ? gallery.filter(photo => typeof photo?.url === 'string' && /^https?:\/\//i.test(photo.url)) : [];
+  });
+  readonly metadata = computed(() => {
+    const item = this.item();
+    if (!item) return [];
+    switch (this.category()) {
+      case 'anime': {
+        const a = item as ReviewAnime;
+        return [{label:'ประเภท',value:a.type},{label:'จำนวนตอน',value:a.episode},{label:'เริ่มฉาย (JP)',value:a['premiered(JP)']},{label:'ดูจบเมื่อ',value:a['finished date']}];
+      }
+      case 'book': {
+        const b = item as ReviewBook;
+        return [{label:'ประเภท',value:b.type},{label:'สำนักพิมพ์',value:b.license},{label:'จำนวนเล่ม',value:b.total},{label:'อ่านจบเมื่อ',value:b.finishedDate}];
+      }
+      case 'game': {
+        const g = item as ReviewGame;
+        return [{label:'แพลตฟอร์ม',value:g.platForm},{label:'เริ่มเล่น',value:g.startDate},{label:'เล่นจบเมื่อ',value:g.endDate}];
+      }
+      default: {
+        const p = item as ReviewPlamo;
+        return [{label:'ไลน์',value:p.line},{label:'ต่อเสร็จเมื่อ',value:p.finishedDate}];
+      }
     }
   });
-
-  constructor(
-    private route: ActivatedRoute,
-    private reviewAnimeService: ReviewAnimeService,
-    private reviewBookService: ReviewBookService,
-    private reviewGameService: ReviewGameService,
-    private reviewPlamoService: ReviewPlamoService
-  ) {}
-
-  ngOnInit(): void {
-    this.reviewAnimeService.loadOnce();
-    this.reviewBookService.loadOnce();
-    this.reviewGameService.loadOnce();
-    this.reviewPlamoService.loadOnce();
-
-    this.route.paramMap.subscribe((params) => {
-      const rawType = (params.get('type') ?? '').toLowerCase();
-      const rawId = decodeURIComponent(params.get('id') ?? '');
-      const category = this.normalizeCategory(rawType);
-
-      this.category.set(category);
-      this.reviewId.set(rawId);
-      this.item.set(this.findItem(category, rawId));
+  constructor() {
+    inject(ActivatedRoute).paramMap.pipe(takeUntilDestroyed()).subscribe(params => {
+      const type = params.get('type') ?? '';
+      this.category.set(['anime','book','game','plamo'].includes(type) ? type as Category : 'anime');
+      this.reviewId.set(params.get('id') ?? '');
+      this.coverFailed.set(false);
+      this.services[this.category()].loadOnce();
     });
   }
-
-  genresOf(item: ReviewItem): string[] {
-    return Array.isArray((item as { genres?: string[] }).genres)
-      ? ((item as { genres?: string[] }).genres ?? []).filter(Boolean)
-      : [];
-  }
-
-  private normalizeCategory(type: string): ReviewCategory {
-    switch (type) {
-      case 'book':
-        return 'book';
-      case 'game':
-        return 'game';
-      case 'plamo':
-        return 'plamo';
-      case 'anime':
-      default:
-        return 'anime';
-    }
-  }
-
-  private findItem(category: ReviewCategory, id: string): ReviewItem | null {
-    switch (category) {
-      case 'book':
-        return this.reviewBookService.reviewBooks().find((item) => item.name === id) ?? null;
-      case 'game':
-        return this.reviewGameService.reviewGames().find((item) => item.name === id) ?? null;
-      case 'plamo':
-        return this.reviewPlamoService.reviewPlamos().find((item) => item.name === id) ?? null;
-      case 'anime':
-      default:
-        return this.reviewAnimeService.reviewAnime().find((item) => item.name === id) ?? null;
-    }
+  retry() { this.services[this.category()].refresh(); }
+  edit() {
+    const item = this.item();
+    if (item) this.router.navigate(['/review/add-review'], {
+      queryParams: {mode:'edit',category:'review-' + this.category(),fieldName:'name',fieldValue:item.name},
+      state: {editData:item}
+    });
   }
 }
