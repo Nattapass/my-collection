@@ -120,3 +120,17 @@
 @import './app/review/shared/review-row-theme';
 
 @import './motion';
+
+/* Shared native inputs, independent of Bootstrap. */
+.app-input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: .65rem .8rem;
+  border: 1px solid #cbd5e1;
+  border-radius: .5rem;
+  background-color: #fff;
+  color: #203552;
+  font: inherit;
+}
+.app-input:focus { outline: 2px solid #285ea8; outline-offset: 2px; }

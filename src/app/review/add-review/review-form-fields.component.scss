@@ -1,0 +1,21 @@
+:host { display: block; }
+.field-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1.2rem; }
+.field-panel { min-width: 0; padding: 1rem; background: #fbfcff; border: 1px solid #e1e8f2; border-radius: 12px; }
+.wide { grid-column: 1/-1; }
+label { display: block; color: #394e6b; font-weight: 500; font-size: .95rem; margin-bottom: .5rem; }
+label span { color: var(--accent,#285ea8); }
+input,select,textarea { display: block; width: 100%; min-width: 0; border: 1px solid #bfd0e4; border-radius: 8px; padding: .7rem .8rem; font: inherit; font-size: .95rem; background-color: #fff; color: #203552; }
+select { padding-right: 2.5rem; }
+textarea { line-height: 1.9; resize: vertical; }
+input:focus,select:focus,textarea:focus { outline: 2px solid var(--accent,#285ea8); outline-offset: 2px; }
+.date-fields { display: flex; flex-wrap: wrap; gap: .5rem; }
+.date-fields input { flex: 1 1 150px; }
+.genre-input { display: flex; gap: .5rem; margin-top: .5rem; }
+.genre-input button { flex-shrink: 0; border: 1px solid #bfd0e4; border-radius: 8px; padding: .5rem .8rem; background: #fff; }
+.genre-list { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .75rem; }
+.review-genre-chip { padding: .45rem .7rem; border-radius: 7px; }
+.field-error { color: #b42335; font-size: .8rem; margin: .5rem 0 0; }
+button { transition: transform .15s; } button:active { transform: translateY(1px); }
+button:focus-visible { outline: 2px solid var(--accent,#285ea8); outline-offset: 3px; }
+@media(max-width:640px) { .field-grid { grid-template-columns: minmax(0,1fr); gap: .8rem; } .field-panel { padding: .8rem; } }
+@media(prefers-reduced-motion:reduce) { button { transition: none; } }

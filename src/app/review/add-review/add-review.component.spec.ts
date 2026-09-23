@@ -21,7 +21,7 @@ describe('AddReview editor', () => {
       http.expectOne('https://service-collection.vercel.app/review-anime/genres').flush(['Drama']);
       http.expectOne('https://service-collection.vercel.app/review-anime/types').flush(['TV']);
       fixture.detectChanges();
-      expect(fixture.componentInstance.reviewAnimeForm.get('name')?.value).toBe('Example');
+      expect(fixture.componentInstance.activeForm().get('name')?.value).toBe('Example');
       expect(fixture.componentInstance.isEditMode()).toBeTrue();
       expect(fixture.nativeElement.querySelector('select').disabled).toBeTrue();
       expect(fixture.nativeElement.querySelector('app-review-photo-picker')).toBeTruthy();

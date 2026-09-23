@@ -1,17 +1,17 @@
 import { API_URL } from '../shared/api-url';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal, viewChild } from '@angular/core';
 import Swal from 'sweetalert2'
-import { NgbTypeaheadModule } from '@ng-bootstrap/ng-bootstrap';
-import { OperatorFunction, Observable, debounceTime, finalize, map } from 'rxjs';
+import { CollectionSearchComponent } from '../shared/collection-search.component';
+import { finalize } from 'rxjs';
 import { IManga } from '../manga/interface/manga.interface';
 import { MangaService } from '../manga/service/manga.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-register',
-  imports: [ReactiveFormsModule, NgbTypeaheadModule, FormsModule],
+  imports: [ReactiveFormsModule, CollectionSearchComponent, FormsModule],
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss'
 })
@@ -102,7 +102,7 @@ export class RegisterComponent {
               icon: 'success',
             });
             this.listForm.reset(this.initialFormValue);
-            this.model = null;
+            this.collectionSearch()?.clear();
             this.selectedManga = null;
             // Handle the data or update component properties here
           },
@@ -137,7 +137,7 @@ export class RegisterComponent {
               icon: 'success',
             });
             this.listForm.reset(this.initialFormValue);
-            this.model = null;
+            this.collectionSearch()?.clear();
             this.selectedManga = null;
           },
           error: (error) => {
@@ -152,9 +152,10 @@ export class RegisterComponent {
     }
   }
 
-  onSelectManga(event: any) {
-    const selectedManga = event.item as IManga | null;
+  onSelectManga(selectedManga: IManga | null) {
+
     if (!selectedManga) {
+      this.selectedManga = null;
       return;
     }
 
@@ -171,25 +172,9 @@ export class RegisterComponent {
     });
   }
 
-  model: IManga | null = null;
+  readonly collectionSearch = viewChild(CollectionSearchComponent);
 
-  search: OperatorFunction<string, readonly any[]> = (
-    text$: Observable<string>
-  ) =>
-    text$.pipe(
-      debounceTime(200),
-      map((term) =>
-        term === ''
-          ? []
-          : this.mangaList()
-            .filter(
-              (v) => v.name.toLowerCase().indexOf(term.toLowerCase()) > -1
-            )
-            .slice(0, 10)
-      )
-    );
 
-  formatter = (x: { name: string }) => x.name;
 
   get isLoadingValue(): boolean {
     return this.isLoading();

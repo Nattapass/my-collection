@@ -1,27 +1,18 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import {
-  NgbDropdownModule,
-  NgbPaginationModule,
-  NgbTypeaheadModule,
-} from '@ng-bootstrap/ng-bootstrap';
+import { PaginationComponent } from '../../shared/pagination.component';
+import { CollectionSearchComponent } from '../../shared/collection-search.component';
 import { RouterLink } from '@angular/router';
-import {
-  OperatorFunction,
-  Observable,
-  debounceTime,
-  map,
-} from 'rxjs';
+
 import { MangaService } from '../service/manga.service';
 import { IManga } from '../interface/manga.interface';
 @Component({
   selector: 'app-manga-list',
   imports: [
     CommonModule,
-    NgbPaginationModule,
-    NgbDropdownModule,
-    NgbTypeaheadModule,
+    PaginationComponent,
+    CollectionSearchComponent,
     FormsModule,
     RouterLink
   ],
@@ -32,7 +23,7 @@ export class MangaListComponent {
   mangaList = this.mangaService.mangaList;
   isLoading = this.mangaService.isLoading;
   page = 1;
-  model!: IManga;
+  model: IManga | null = null;
 
   constructor(private mangaService: MangaService) {
   }
@@ -41,29 +32,14 @@ export class MangaListComponent {
     this.mangaService.loadOnce();
   }
 
-  search: OperatorFunction<string, readonly any[]> = (
-    text$: Observable<string>
-  ) =>
-    text$.pipe(
-      debounceTime(200),
-      map((term) =>
-        term === ''
-          ? []
-          : this.mangaList()
-            .filter(
-              (v) => v.name.toLowerCase().indexOf(term.toLowerCase()) > -1
-            )
-            .slice(0, 10)
-      )
-    );
 
-  formatter = (x: { name: string }) => x.name;
 
   refresh() {
     this.mangaService.refresh();
   }
 
   sortBy(sortType: string) {
+    this.page = 1;
     const list = [...this.mangaList()];
     switch (sortType) {
       case 'New':

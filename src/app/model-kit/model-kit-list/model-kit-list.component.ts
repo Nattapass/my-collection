@@ -2,16 +2,14 @@ import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { IModelKit } from '../interface/manga.interface';
 import { ModelKitService } from '../service/model-kit.service';
 import { CommonModule } from '@angular/common';
-import { NgbPaginationModule, NgbDropdownModule, NgbTypeaheadModule } from '@ng-bootstrap/ng-bootstrap';
+import { PaginationComponent } from '../../shared/pagination.component';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-model-kit-list',
   imports: [
     CommonModule,
-    NgbPaginationModule,
-    NgbDropdownModule,
-    NgbTypeaheadModule,],
+    PaginationComponent,],
   templateUrl: './model-kit-list.component.html',
   styleUrl: './model-kit-list.component.scss'
 })

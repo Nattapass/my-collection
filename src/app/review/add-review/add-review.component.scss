@@ -2,11 +2,13 @@
 [data-category=review-anime]{--accent:#b93242}[data-category=review-book]{--accent:#8c6100}[data-category=review-game]{--accent:#237448}[data-category=review-plamo]{--accent:#7546aa}
 .back-link{display:inline-block;margin-bottom:1.5rem;color:var(--accent);font-size:.85rem;text-decoration:none}.eyebrow{font-size:.7rem;letter-spacing:.15em;color:var(--accent)}h1{font-size:clamp(1.8rem,3vw,2.5rem);font-weight:600}
 .editor-heading{border-bottom:1px solid #dce5f0;padding-bottom:1.3rem}.form-preview{display:flex;align-items:center;gap:1rem;background:linear-gradient(120deg,#edf4ff,#fff);border:1px solid #d0dff1;border-radius:12px;padding:1rem;margin-top:1.2rem}.form-preview img{width:60px;height:85px;object-fit:contain}.form-preview>div{flex:1;min-width:0}.form-preview span{font-size:.75rem;color:#61748d}.form-preview h2{font-size:1.1rem;font-weight:600;overflow-wrap:anywhere;margin:.3rem 0}
-form>.grid{gap:1.2rem}form>.grid>div{padding:1rem;background:#fbfcff;border:1px solid #e1e8f2;border-radius:12px}label{color:#394e6b!important;font-weight:500!important;font-size:.9rem!important}
-.form-control,.form-select{border:1px solid #bfd0e4;border-radius:8px;padding:.7rem .8rem;font:inherit;font-size:.95rem;min-width:0;background:#fff;color:#203552}.form-control:focus,.form-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px #285ea812}
+label{color:#394e6b!important;font-weight:500!important;font-size:.9rem!important}
+.editor-select{border:1px solid #bfd0e4;border-radius:8px;padding:.7rem .8rem;font:inherit;font-size:.95rem;min-width:0;background:#fff;color:#203552}.editor-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px #285ea812}
 textarea{line-height:1.9;resize:vertical;min-height:200px}button{transition:background .2s,transform .2s}button:active:not(:disabled){transform:translateY(1px)}
 .save-bar{border-top:1px solid #d7e2ef;padding-top:1.3rem;flex-wrap:wrap}.save-bar button[type=submit]{background:var(--accent);border-radius:10px;min-width:150px;padding:.8rem 1.2rem}.save-bar button:disabled{background:#c5ceda;color:#526175}
 .review-genre-chip{padding:.4rem .7rem!important;border-radius:7px}.category-prompt{padding:2rem;text-align:center;color:#60718a}
 a:focus-visible,button:focus-visible{outline:3px solid #709fd9;outline-offset:3px}
-@media(max-width:560px){.form-preview{flex-wrap:wrap}.form-preview app-review-rank{margin-left:auto}form>.grid>div{padding:.8rem}.d-flex:has(input[type=date]){flex-wrap:wrap}.save-bar button[type=submit]{width:100%}}
+@media(max-width:560px){.form-preview{flex-wrap:wrap}.form-preview app-review-rank{margin-left:auto}.save-bar button[type=submit]{width:100%}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+.editor-select{display:block;width:100%;padding-right:2.5rem}.save-bar button[type=submit]{color:#fff;font-weight:500}.save-bar button:disabled{cursor:not-allowed}

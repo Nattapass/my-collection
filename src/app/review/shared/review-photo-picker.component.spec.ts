@@ -31,12 +31,31 @@ describe('Review photo editor', () => {
     expect(await fixture.componentInstance.prepare()).toEqual([{key:'first',caption:'One'}]);
     fixture.destroy();
   });
+  it('keeps the textarea focused while typing, preserves line breaks through reorder, and supports clearing a note', async () => {
+    const fixture = TestBed.createComponent(ReviewPhotoPickerComponent);
+    fixture.componentRef.setInput('existing',[{key:'first',caption:'old.png'},{key:'second',caption:''}]);
+    fixture.detectChanges();
+    const picker = fixture.componentInstance;
+    const textarea = fixture.nativeElement.querySelector('textarea') as HTMLTextAreaElement;
+    textarea.focus();
+    textarea.value = 'ฉากที่ประทับใจ\n' + 'ทดสอบ'.repeat(60);
+    textarea.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('textarea')).toBe(textarea);
+    expect(picker.gallery()[0].caption).toBe(textarea.value);
+    picker.move(0,1);
+    expect((await picker.prepare())[1]).toEqual({key:'first',caption:textarea.value});
+    picker.updateCaption(1,'');
+    expect((await picker.prepare())[1].caption).toBe('');
+    expect(media.upload).not.toHaveBeenCalled();
+    fixture.destroy();
+  });
   it('retains newly selected files when upload fails', async () => {
     const fixture = TestBed.createComponent(ReviewPhotoPickerComponent);
     fixture.detectChanges();
     const picker = fixture.componentInstance;
     const blob = new Blob(['test'],{type:'image/webp'});
-    picker.photos.set([{url:URL.createObjectURL(blob),name:'Example',original:4,size:4,blob,progress:{}}]);
+    picker.photos.set([{url:URL.createObjectURL(blob),name:'Example',caption:'',original:4,size:4,blob,progress:{}}]);
     media.upload.and.rejectWith(new Error('Network failure'));
     await expectAsync(picker.prepare()).toBeRejected();
     expect(picker.photos().length).toBe(1);
@@ -56,6 +75,7 @@ describe('Review photo editor', () => {
     expect(Math.max(bitmap.width,bitmap.height)).toBeLessThanOrEqual(1920);
     expect(photo.size).toBeLessThan(original.size);
     expect(photo.blob!.type).toBe('image/webp');
+    expect(photo.caption).toBe('');
     expect(media.upload).not.toHaveBeenCalled();
     bitmap.close();
     fixture.destroy();

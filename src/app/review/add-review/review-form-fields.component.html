@@ -1,0 +1,51 @@
+<div class="field-grid" [formGroup]="form()">
+  @for (field of config().fields; track field.key) {
+    <div class="field-panel" [class.wide]="field.wide">
+      <label [for]="inputId(field.key)">{{ field.label }} @if (!field.optional) {<span aria-hidden="true">*</span>}</label>
+      @switch (field.kind) {
+        @case ('select') {
+          <select [id]="inputId(field.key)" [formControlName]="field.key" [attr.aria-invalid]="invalid(field.key)">
+            <option value="">เลือก {{ field.label }}</option>
+            @for (option of field.options; track option) {<option [value]="option">{{ option }}</option>}
+          </select>
+        }
+        @case ('choice') {
+          <select [id]="inputId(field.key)" [value]="custom(field.key) ? '__custom' : form().get(field.key)?.value" (change)="choose(field.key, $any($event.target).value)">
+            <option value="">เลือก {{ field.label }}</option>
+            @for (option of choices(); track option) {<option [value]="option">{{ option }}</option>}
+            <option value="__custom">+ เพิ่มค่าใหม่</option>
+          </select>
+          @if (custom(field.key)) {
+            <input class="mt-2" type="text" [attr.aria-label]="field.label + ' ใหม่'" [formControlName]="field.key" maxlength="200" placeholder="ระบุค่าใหม่" />
+          }
+        }
+        @case ('date') {
+          <div class="date-fields">
+            <input [id]="inputId(field.key)" type="text" [formControlName]="field.key" placeholder="DD/MM/YYYY หรือวันที่โดยประมาณ" maxlength="200" />
+            <input type="date" [attr.aria-label]="'เลือก ' + field.label" [value]="dateInputValue(form().get(field.key)?.value)" (change)="setDate(field.key, $any($event.target).value)" />
+          </div>
+        }
+        @case ('genres') {
+          <select [id]="inputId(field.key)" (change)="addGenre($any($event.target).value); $any($event.target).value = ''">
+            <option value="">เลือกแนวเรื่อง</option>
+            @for (genre of genreOptions(); track genre) {<option [value]="genre">{{ genre }}</option>}
+          </select>
+          <div class="genre-input">
+            <input #genreInput type="text" maxlength="200" aria-label="แท็กใหม่" placeholder="เพิ่มแท็กใหม่" (keydown.enter)="$event.preventDefault(); addGenre(genreInput.value); genreInput.value = ''" />
+            <button type="button" (click)="addGenre(genreInput.value); genreInput.value = ''">+ เพิ่ม</button>
+          </div>
+          <div class="genre-list">
+            @for (genre of genres(); track genre) {
+              <button type="button" class="review-genre-chip" [appGenreColor]="$index" [attr.aria-label]="'ลบแท็ก ' + genre" (click)="removeGenre(genre)">{{ genre }} <span aria-hidden="true">×</span></button>
+            }
+          </div>
+        }
+        @case ('textarea') {<textarea [id]="inputId(field.key)" rows="9" [formControlName]="field.key" maxlength="50000"></textarea>}
+        @default {
+          <input [id]="inputId(field.key)" [type]="field.kind === 'number' ? 'number' : field.kind === 'url' ? 'url' : 'text'" [formControlName]="field.key" [attr.min]="field.kind === 'number' ? 0 : null" [attr.step]="field.kind === 'number' ? 1 : null" [attr.aria-invalid]="invalid(field.key)" />
+        }
+      }
+      @if (invalid(field.key)) {<p class="field-error" role="alert">{{ error(field.key) }}</p>}
+    </div>
+  }
+</div>

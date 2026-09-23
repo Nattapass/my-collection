@@ -20,9 +20,7 @@
               }
             </select> -->
 
-          <input id="typeahead-template" type="text" class="form-control col" [(ngModel)]="model"
-            [ngbTypeahead]="search" [inputFormatter]="formatter" [resultFormatter]="formatter" [selectOnExact]="true"
-            (selectItem)="onSelectManga($event)" />
+          <app-collection-search [items]="mangaList()" (selected)="onSelectManga($event)" />
 
         </div>
       </div>

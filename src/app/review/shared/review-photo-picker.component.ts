@@ -1,8 +1,8 @@
 import { GalleryPhoto, ReviewMediaService, UploadProgress, UploadContext } from './review-media.service';
-﻿import { Component, DestroyRef, computed, effect, inject, input, signal, untracked } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { ReviewGalleryComponent } from './review-gallery.component';
 
-interface LocalPhoto { url: string; name: string; original: number; size: number; blob?: Blob; progress: UploadProgress; }
+interface LocalPhoto { url: string; name: string; caption: string; original: number; size: number; blob?: Blob; progress: UploadProgress; }
 @Component({
   selector: 'app-review-photo-picker',
   imports: [ReviewGalleryComponent],
@@ -17,12 +17,21 @@ interface LocalPhoto { url: string; name: string; original: number; size: number
       </label>
       @if (error()) {<p role="alert">{{ error() }}</p>}
       @if (uploadStatus()) {<p role="status" aria-live="polite">{{ uploadStatus() }}</p>}
-      <div class="photos">@for (photo of photos(); track photo; let i = $index) {
-        <div class="photo"><img [src]="photo.url || undefined" [alt]="photo.name" /><div><strong>{{ photo.name }}</strong>@if (photo.blob) {<small>{{ kb(photo.original) }} → {{ kb(photo.size) }} KB</small>} @else {<small>รูปที่บันทึกแล้ว</small>}</div>
-          <button type="button" (click)="move(i,-1)" [disabled]="i === 0 || busy() || locked()" aria-label="เลื่อนรูปไปก่อนหน้า">↑</button>
-          <button type="button" (click)="move(i,1)" [disabled]="i === photos().length-1 || busy() || locked()" aria-label="เลื่อนรูปไปถัดไป">↓</button>
-          <button type="button" (click)="remove(i)" [disabled]="busy() || locked()" aria-label="ลบรูป">×</button>
-        </div>
+      <div class="photos">@for (photo of photos(); track photo.progress; let i = $index) {
+        <article class="photo">
+          <div class="photo-header">
+            <img [src]="photo.url || undefined" [alt]="'ภาพที่ ' + (i + 1)" />
+            <div class="file-info"><strong>{{ photo.name }}</strong>@if (photo.blob) {<small>{{ kb(photo.original) }} → {{ kb(photo.size) }} KB</small>} @else {<small>รูปที่บันทึกแล้ว</small>}</div>
+            <div class="photo-actions">
+              <button type="button" (click)="move(i,-1)" [disabled]="i === 0 || busy() || locked()" aria-label="เลื่อนรูปไปก่อนหน้า">↑</button>
+              <button type="button" (click)="move(i,1)" [disabled]="i === photos().length-1 || busy() || locked()" aria-label="เลื่อนรูปไปถัดไป">↓</button>
+              <button type="button" (click)="remove(i)" [disabled]="busy() || locked()" aria-label="ลบรูป">×</button>
+            </div>
+          </div>
+          <label [for]="'photo-caption-' + i">ความประทับใจในภาพนี้ <span>(ไม่บังคับ)</span></label>
+          <textarea [id]="'photo-caption-' + i" rows="3" maxlength="1000" [value]="photo.caption" (input)="updateCaption(i, $any($event.target).value)" [disabled]="busy() || locked()" placeholder="ฉากนี้ทำให้รู้สึกยังไง หรือมีอะไรที่อยากเก็บไว้จำ..."></textarea>
+          <small class="count">{{ photo.caption.length }} / 1,000</small>
+        </article>
       }</div>
       @if (photos().length) {<details><summary>ดูตัวอย่างแกลเลอรี</summary><app-review-gallery [photos]="gallery()" /></details>}
     </section>
@@ -30,7 +39,7 @@ interface LocalPhoto { url: string; name: string; original: number; size: number
   styles: [`
     section{margin-top:2rem;border-top:1px solid #d3deec;padding-top:1.5rem}h2{font-size:1.2rem;font-weight:600}.notice{font-size:.85rem;color:#805823;background:#fff6df;padding:.8rem;border-radius:8px}
     .drop{display:grid;gap:.5rem;border:2px dashed #a9c0df;border-radius:12px;padding:1.5rem;text-align:center;background:#f4f8ff;cursor:pointer}.drop span{font-size:.8rem;color:#5a708c}.drop input{max-width:100%;margin:auto}
-    .photos{display:grid;gap:.6rem;margin:1rem 0}.photo{display:flex;align-items:center;gap:.5rem;border:1px solid #d2ddeb;border-radius:8px;padding:.5rem}.photo img{width:60px;height:60px;object-fit:contain}.photo>div{flex:1;min-width:0}.photo strong{display:block;font-size:.8rem;overflow-wrap:anywhere}.photo small{color:#62758e}button{padding:.3rem .6rem;border:1px solid #b9cbe1;border-radius:6px;background:#fff}button:disabled{opacity:.3}summary{cursor:pointer;color:#285ea8}
+    .photos{display:grid;gap:1rem;margin:1rem 0}.photo{border:1px solid #d2ddeb;border-left:3px solid var(--accent,#285ea8);border-radius:12px;padding:1rem;background:linear-gradient(125deg,#f5f8fc,#fff 65%);box-shadow:0 5px 14px #20355209}.photo-header{display:flex;align-items:center;gap:.75rem;margin-bottom:1rem}.photo img{width:64px;height:64px;object-fit:contain;border-radius:6px}.file-info{flex:1;min-width:0}.photo strong{display:block;font-size:.85rem;overflow-wrap:anywhere}.photo small,label span{color:#62758e;font-size:.75rem}.photo-actions{display:flex;gap:.3rem}.photo label{display:block;font-size:.9rem;font-weight:500;margin-bottom:.5rem}.photo textarea{display:block;width:100%;box-sizing:border-box;min-height:100px;resize:vertical;border:1px solid #bfcede;border-radius:8px;padding:.7rem .85rem;font:inherit;font-size:.95rem;line-height:1.8;background:#fff;color:#203552}.photo textarea:focus-visible{outline:2px solid var(--accent,#285ea8);outline-offset:2px}.count{display:block;text-align:right;margin-top:.3rem}button{padding:.3rem .6rem;border:1px solid #b9cbe1;border-radius:6px;background:#fff}button:disabled{opacity:.3}summary{cursor:pointer;color:var(--accent,#285ea8)}@media(max-width:420px){.photo{padding:.75rem}.photo-header{flex-wrap:wrap}.photo-actions{margin-left:auto}.photo img{width:48px;height:48px}}
   `]
 })
 export class ReviewPhotoPickerComponent {
@@ -40,7 +49,7 @@ export class ReviewPhotoPickerComponent {
   readonly uploadStatus = signal('');
   private readonly abort = new AbortController();
   readonly photos = signal<LocalPhoto[]>([]);
-  readonly gallery = computed(() => this.photos().map(photo => ({url: photo.url, caption: photo.name})));
+  readonly gallery = computed(() => this.photos().map(photo => ({url: photo.url, caption: photo.caption})));
   readonly busy = signal(false);
   readonly error = signal('');
   private destroyed = false;
@@ -50,7 +59,7 @@ export class ReviewPhotoPickerComponent {
       const existing = this.existing();
       untracked(() => {
       this.clear();
-      this.photos.set(existing.map(photo => ({ url: '', name: photo.caption ?? '', original: 0, size: 0, progress: {key: photo.key} })));
+      this.photos.set(existing.map((photo, i) => ({ url: '', name: 'ภาพที่ ' + (i + 1), caption: photo.caption ?? '', original: 0, size: 0, progress: {key: photo.key} })));
       this.busy.set(true);
       const subscription = this.media.read(existing).subscribe({
         next: signed => {
@@ -78,7 +87,7 @@ export class ReviewPhotoPickerComponent {
         if (this.destroyed) throw new Error('Upload cancelled');
         this.uploadStatus.set('กำลังอัปโหลดรูป ' + (i + 1) + ' / ' + this.photos().length);
         const key = photo.progress.key ?? await this.media.upload(photo.blob!, photo.progress, this.abort.signal, context);
-        gallery.push({key, caption: photo.name.slice(0, 200)});
+        gallery.push({key, caption: photo.caption});
       }
       this.uploadStatus.set(gallery.length ? 'เตรียมรูปครบแล้ว กำลังบันทึกรีวิว...' : '');
       return gallery;
@@ -87,6 +96,10 @@ export class ReviewPhotoPickerComponent {
       this.uploadStatus.set('');
       throw error;
     } finally { this.busy.set(false); }
+  }
+  updateCaption(index: number, caption: string) {
+    if (this.busy() || this.locked()) return;
+    this.photos.update(photos => photos.map((photo, i) => i === index ? {...photo, caption: caption.slice(0, 1000)} : photo));
   }
   saved() { this.uploadStatus.set('บันทึกรูปเรียบร้อยแล้ว'); }
   kb(bytes: number) { return Math.round(bytes / 1024); }
@@ -113,7 +126,7 @@ export class ReviewPhotoPickerComponent {
             const compressed = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/webp', .83));
             const blob = compressed && compressed.size < file.size ? compressed : file;
             if (blob.size > 5 * 1024 * 1024) { this.error.set('รูปยังใหญ่เกิน 5 MB หลังบีบอัด กรุณาลดขนาดก่อน'); continue; }
-            if (!this.destroyed) this.photos.update(list => [...list, {url: URL.createObjectURL(blob), name: file.name, original: file.size, size: blob.size, blob, progress: {}}]);
+            if (!this.destroyed) this.photos.update(list => [...list, {url: URL.createObjectURL(blob), name: file.name, caption: '', original: file.size, size: blob.size, blob, progress: {}}]);
           } finally { bitmap.close(); }
         } catch { this.error.set('อ่านรูปบางไฟล์ไม่ได้ กรุณาลองไฟล์อื่น'); }
       }

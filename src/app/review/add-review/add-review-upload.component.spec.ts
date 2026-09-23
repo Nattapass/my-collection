@@ -24,9 +24,9 @@ describe('Saving review galleries', () => {
     http.expectOne(API_URL + '/review-anime/genres').flush([]);
     http.expectOne(API_URL + '/review-anime/types').flush([]);
     const component = fixture.componentInstance;
-    component.reviewAnimeForm.patchValue({name:'Example',image:'https://example.com/cover.jpg',genres:['Drama'],tier:'A',episode:12,type:'TV','premiered(JP)':'2026','finished date':'2026'});
+    component.activeForm().patchValue({name:'Example',image:'https://example.com/cover.jpg',genres:['Drama'],tier:'A',episode:12,type:'TV','premiered(JP)':'2026','finished date':'2026'});
     const blob = new Blob(['photo'],{type:'image/webp'});
-    component.photoPicker()!.photos.set([{url:URL.createObjectURL(blob),name:'Photo',original:5,size:5,blob,progress:{}}]);
+    component.photoPicker()!.photos.set([{url:URL.createObjectURL(blob),name:'Photo',caption:'ฉากที่ชอบ\nอยากเก็บไว้จำ',original:5,size:5,blob,progress:{}}]);
     return {fixture,http,component};
   }
   it('sends persistent keys with the review only after the uploads finish', async () => {
@@ -37,12 +37,12 @@ describe('Saving review galleries', () => {
       return 'reviews/new.webp';
     });
     const {fixture,http,component} = setup();
-    component.submitReviewAnime();
+    component.submit();
     http.expectOne(API_URL + '/review-anime').flush([]); // Duplicate check.
     await new Promise(resolve => setTimeout(resolve, 0));
     const save = http.expectOne(API_URL + '/review-anime');
     expect(save.request.method).toBe('POST');
-    expect(save.request.body.gallery).toEqual([{key:'reviews/new.webp',caption:'Photo'}]);
+    expect(save.request.body.gallery).toEqual([{key:'reviews/new.webp',caption:'ฉากที่ชอบ\nอยากเก็บไว้จำ'}]);
     expect(save.request.body.imageFolder).toBe('reviews/anime/example--folder-id');
     expect(save.request.body.image).toBe('https://example.com/cover.jpg');
     save.flush(save.request.body);
@@ -53,7 +53,7 @@ describe('Saving review galleries', () => {
   it('does not save an incomplete gallery and leaves the selected file available to retry', async () => {
     media.upload.and.rejectWith(new Error('Upload failed'));
     const {fixture,http,component} = setup();
-    component.submitReviewAnime();
+    component.submit();
     http.expectOne(API_URL + '/review-anime').flush([]);
     await new Promise(resolve => setTimeout(resolve, 0));
     http.expectNone(API_URL + '/review-anime');

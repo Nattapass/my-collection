@@ -1,6 +1,5 @@
 <p>model-kit-list works!</p>
-<ngb-pagination class="d-flex justify-content-end mt-6" [collectionSize]="modelKitList().length" [(page)]="page"
-  [maxSize]="5" [rotate]="true" [ellipses]="false" [boundaryLinks]="true" [pageSize]="20" />
+<app-pagination [collectionSize]="modelKitList().length" [(page)]="page" [pageSize]="20" />
 <div class="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
 
   @for (item of modelKitList() | slice: (page-1) * 20 : page * 20; track item.name) {
@@ -32,5 +31,4 @@
   }
   }
 </div>
-<ngb-pagination class="d-flex justify-content-end mt-6" [collectionSize]="modelKitList().length" [(page)]="page"
-  [maxSize]="5" [rotate]="true" [ellipses]="false" [boundaryLinks]="true" [pageSize]="20" />
+<app-pagination [collectionSize]="modelKitList().length" [(page)]="page" [pageSize]="20" />
