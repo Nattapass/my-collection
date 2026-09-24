@@ -49,6 +49,14 @@ describe('Shared review editor', () => {
       expect(fixture.nativeElement.querySelectorAll('app-review-form-fields').length).toBe(1);
       const payload = { ...base, ...item.values };
       component.activeForm().patchValue(payload);
+      // Exercise the actual value accessor: patchValue alone misses string
+      // values produced when a numeric input uses a dynamically bound type.
+      fixture.detectChanges();
+      const count: HTMLInputElement | null = fixture.nativeElement.querySelector('input[type="number"]');
+      if (count) {
+        count.value = String(item.values[item.category === 'review-anime' ? 'episode' : 'total']);
+        count.dispatchEvent(new Event('input'));
+      }
       expect(component.activeForm().valid).toBeTrue();
       component.submit();
       component.submit(); // Repeated click must not duplicate the request.

@@ -10,6 +10,7 @@ import { GalleryPhoto, UploadContext } from '../shared/review-media.service';
 import { ReviewFormFieldsComponent } from './review-form-fields.component';
 import { createEditorForm, editorPayload, initialValues, REVIEW_EDITORS, reviewCategory, ReviewCategory } from './review-editor.config';
 import { ReviewDocument, ReviewEditorDataService } from './review-editor-data.service';
+import { reviewSaveError } from './review-editor.errors';
 
 @Component({
   selector: 'app-add-review',
@@ -161,9 +162,7 @@ export class AddReviewComponent {
         void Swal.fire({ title: this.successMessage(), icon: 'success' });
       },
       error: error => {
-        this.errorMessage.set(error?.status === 401 ? 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่ก่อนบันทึก'
-          : error instanceof Error && !('status' in error) ? error.message
-          : 'บันทึกไม่สำเร็จ กรุณาตรวจข้อมูลและการเชื่อมต่อ รูปที่เลือกยังอยู่เพื่อให้ลองใหม่ได้');
+        this.errorMessage.set(reviewSaveError(error));
       },
     });
   }

@@ -41,8 +41,11 @@
           </div>
         }
         @case ('textarea') {<textarea [id]="inputId(field.key)" rows="9" [formControlName]="field.key" maxlength="50000"></textarea>}
+        @case ('number') {
+          <input [id]="inputId(field.key)" type="number" [formControlName]="field.key" min="0" step="1" [attr.aria-invalid]="invalid(field.key)" />
+        }
         @default {
-          <input [id]="inputId(field.key)" [type]="field.kind === 'number' ? 'number' : field.kind === 'url' ? 'url' : 'text'" [formControlName]="field.key" [attr.min]="field.kind === 'number' ? 0 : null" [attr.step]="field.kind === 'number' ? 1 : null" [attr.aria-invalid]="invalid(field.key)" />
+          <input [id]="inputId(field.key)" [type]="field.kind === 'url' ? 'url' : 'text'" [formControlName]="field.key" [attr.aria-invalid]="invalid(field.key)" />
         }
       }
       @if (invalid(field.key)) {<p class="field-error" role="alert">{{ error(field.key) }}</p>}

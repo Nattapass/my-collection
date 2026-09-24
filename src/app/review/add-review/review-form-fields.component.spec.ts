@@ -1,11 +1,11 @@
 import { TestBed } from '@angular/core/testing';
 import { ReviewFormFieldsComponent } from './review-form-fields.component';
-import { createEditorForm, REVIEW_EDITORS } from './review-editor.config';
+import { createEditorForm, REVIEW_EDITORS, ReviewCategory } from './review-editor.config';
 
 describe('Review form field interactions', () => {
-  function setup() {
+  function setup(category: ReviewCategory = 'review-anime') {
     const fixture = TestBed.createComponent(ReviewFormFieldsComponent);
-    const config = REVIEW_EDITORS['review-anime'];
+    const config = REVIEW_EDITORS[category];
     const form = createEditorForm(config);
     fixture.componentRef.setInput('config', config);
     fixture.componentRef.setInput('form', form);
@@ -41,4 +41,19 @@ describe('Review form field interactions', () => {
     expect(form.get('premiered(JP)')?.value).toBe('23/09/2026');
     expect(fixture.nativeElement.querySelector('input[type="date"]').value).toBe('2026-09-23');
   });
+  for (const [category, field] of [['review-anime', 'episode'], ['review-book', 'total']] as const) {
+    it(`keeps typed ${field} numeric and validates empty/negative/fractional values`, () => {
+      const { fixture, form } = setup(category);
+      const input: HTMLInputElement = fixture.nativeElement.querySelector('#review-' + field);
+      input.value = '12'; input.dispatchEvent(new Event('input'));
+      expect(form.get(field)?.value).toBe(12);
+      input.value = '0'; input.dispatchEvent(new Event('input'));
+      expect(form.get(field)?.value).toBe(0);
+      expect(form.get(field)?.valid).toBeTrue();
+      for (const invalid of ['', '-1', '1.5']) {
+        input.value = invalid; input.dispatchEvent(new Event('input'));
+        expect(form.get(field)?.invalid).toBeTrue();
+      }
+    });
+  }
 });
